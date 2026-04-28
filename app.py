@@ -188,7 +188,9 @@ with gr.Blocks(
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("GRADIO_SERVER_PORT", "7861"))
+    # HF Spaces routes external traffic to container port 7860 by default.
+    # Defaulting to 7861 caused the gateway to return 500 for every external request.
+    port = int(os.environ.get("GRADIO_SERVER_PORT", "7860"))
     app.queue(max_size=10).launch(
         server_name="0.0.0.0", server_port=port,
         share=os.environ.get("GRADIO_SHARE", "0") == "1",

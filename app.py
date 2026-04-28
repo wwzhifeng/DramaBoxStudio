@@ -123,6 +123,7 @@ with gr.Blocks(
     title="DramaBox — Expressive TTS",
     theme=gr.themes.Default(),
     css=".prompt-box textarea { font-size: 14px !important; line-height: 1.5 !important; }",
+    analytics_enabled=False,
 ) as app:
     gr.Markdown("# 🎭 DramaBox — Expressive TTS with Voice Cloning")
     gr.Markdown(
@@ -191,4 +192,6 @@ if __name__ == "__main__":
     app.queue(max_size=10).launch(
         server_name="0.0.0.0", server_port=port,
         share=os.environ.get("GRADIO_SHARE", "0") == "1",
+        ssr_mode=False,                       # Gradio 5 SSR + ZeroGPU fork has known race conditions
+        show_api=False,                       # don't auto-derive Python schemas (caused bool-iter / dict-cache crashes)
     )

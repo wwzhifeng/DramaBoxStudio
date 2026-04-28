@@ -253,6 +253,10 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
 
     # Auto-set based on model type but overridable
+    p.add_argument("--no-watermark", action="store_true",
+                   help="Skip Perth audio watermarking on the output (default: watermark on).")
+    p.add_argument("--sampler", choices=["euler", "heun"], default="euler",
+                   help="Denoising loop. 'heun' = jkass_quality 2nd-order predictor-corrector (~2x model calls, cleaner audio).")
     p.add_argument("--cfg-scale", type=float, default=None, help="CFG scale (auto: 1.0 distilled, 7.0 dev)")
     p.add_argument("--stg-scale", type=float, default=None, help="STG scale (auto: 0.0 distilled, 1.0 dev)")
     p.add_argument("--stg-block", type=int, default=29, help="Block index for STG perturbation")
@@ -303,7 +307,7 @@ def main():
     from ltx_pipelines.utils.denoisers import GuidedDenoiser, SimpleDenoiser
     from ltx_pipelines.utils.gpu_model import gpu_model
     from ltx_pipelines.utils.media_io import decode_audio_from_file
-    from ltx_pipelines.utils.samplers import euler_denoising_loop
+    from ltx_pipelines.utils.samplers import euler_denoising_loop, heun_denoising_loop
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype = torch.bfloat16
@@ -585,7 +589,8 @@ def main():
     with gpu_model(x0_model) as model:
         batched_model = BatchSplitAdapter(model, max_batch_size=1)
 
-        _, audio_state = euler_denoising_loop(
+        denoise_fn = heun_denoising_loop if args.sampler == "heun" else euler_denoising_loop
+        _, audio_state = denoise_fn(
             sigmas=sigmas,
             video_state=None,
             audio_state=noised_state,
@@ -621,8 +626,25 @@ def main():
         wav = wav[..., trim_samples:]
         logging.info(f"Trimmed {args.pad_start}s ({trim_samples} samples) of start padding")
 
+    # Apply Perth (Perceptual Threshold) imperceptible neural watermark — see
+    # https://github.com/resemble-ai/perth. Mono waveform required; if stereo,
+    # we average to mono for the watermark and broadcast back. Skip on
+    # --no-watermark for debugging.
+    wav_cpu = wav.float().cpu()
+    if not getattr(args, "no_watermark", False):
+        try:
+            import perth
+            import numpy as np
+            wm = perth.PerthImplicitWatermarker()
+            mono = wav_cpu.mean(dim=0).numpy() if wav_cpu.shape[0] > 1 else wav_cpu[0].numpy()
+            mono_wm = wm.apply_watermark(mono, sample_rate=sr)
+            mono_wm_t = torch.from_numpy(np.asarray(mono_wm, dtype=np.float32)).unsqueeze(0)
+            wav_cpu = mono_wm_t if wav_cpu.shape[0] == 1 else mono_wm_t.repeat(wav_cpu.shape[0], 1)
+        except Exception as e:
+            logging.warning(f"Perth watermark skipped ({e})")
+
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
-    torchaudio.save(args.output, wav.float().cpu(), sr)
+    torchaudio.save(args.output, wav_cpu, sr)
 
     elapsed = time.time() - t0
     logging.info(f"Output: {args.output} ({wav.shape[-1] / sr:.1f}s)")

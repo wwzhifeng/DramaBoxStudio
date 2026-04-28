@@ -65,8 +65,10 @@ class TTSServer:
         self.checkpoint = checkpoint or str(MODELS / "ltx-2.3-22b-dev-audio-only-v13-merged.safetensors")
         self.full_checkpoint = full_checkpoint or os.environ.get(
             "LTX_FULL_CHECKPOINT", "/mnt/persistent0/manmay/models/ltx23/ltx-2.3-22b-dev.safetensors")
-        self.gemma_root = gemma_root or os.environ.get(
-            "GEMMA_DIR", "/mnt/persistent0/manmay/models/gemma-3-12b-it-qat-q4_0-unquantized")
+        if gemma_root is None and not os.environ.get("GEMMA_DIR"):
+            from model_downloader import get_gemma_path
+            gemma_root = get_gemma_path()
+        self.gemma_root = gemma_root or os.environ["GEMMA_DIR"]
         self.device = torch.device(device)
         self.dtype = torch.float16 if dtype == "fp16" else torch.bfloat16
         self.compile_model = compile_model
@@ -264,9 +266,21 @@ class TTSServer:
         logging.info(f"Total: {total:.2f}s for {dur:.1f}s audio")
         return decoded.waveform, decoded.sampling_rate
 
-    def generate_to_file(self, prompt, output, **kwargs):
+    def generate_to_file(self, prompt, output, watermark: bool = True, **kwargs):
         waveform, sr = self.generate(prompt, **kwargs)
-        torchaudio.save(output, waveform.cpu(), sr)
+        wav_cpu = waveform.cpu().float()
+        if watermark:
+            try:
+                import numpy as np, perth
+                if not hasattr(self, "_perth"):
+                    self._perth = perth.PerthImplicitWatermarker()
+                mono = wav_cpu.mean(dim=0).numpy() if wav_cpu.shape[0] > 1 else wav_cpu[0].numpy()
+                mono_wm = self._perth.apply_watermark(mono, sample_rate=sr)
+                mono_wm_t = torch.from_numpy(np.asarray(mono_wm, dtype=np.float32)).unsqueeze(0)
+                wav_cpu = mono_wm_t if wav_cpu.shape[0] == 1 else mono_wm_t.repeat(wav_cpu.shape[0], 1)
+            except Exception as e:
+                logging.warning(f"Perth watermark skipped ({e})")
+        torchaudio.save(output, wav_cpu, sr)
         logging.info(f"Saved: {output}")
         return output
 

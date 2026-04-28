@@ -74,6 +74,52 @@ def euler_denoising_loop(
     return (video_state, audio_state)
 
 
+def heun_denoising_loop(
+    sigmas: torch.Tensor,
+    video_state: LatentState | None,
+    audio_state: LatentState | None,
+    stepper: DiffusionStepProtocol,
+    transformer: X0Model,
+    denoiser: Denoiser,
+) -> tuple[LatentState | None, LatentState | None]:
+    """Heun (2nd-order predictor-corrector) variant of :func:`euler_denoising_loop`.
+    Port of the ``jkass_quality`` sampler from JK-AceStep-Nodes. ~2x model
+    calls per step; last step falls back to plain Euler.
+    """
+    n = len(sigmas) - 1
+    for step_idx in tqdm(range(n)):
+        sigma_curr = sigmas[step_idx]
+        sigma_next = sigmas[step_idx + 1]
+        dt = sigma_next - sigma_curr
+        denoised_video_1, denoised_audio_1 = denoiser(
+            transformer, video_state, audio_state, sigmas, step_idx,
+        )
+        video_pred = _step_state(video_state, denoised_video_1, stepper, sigmas, step_idx)
+        audio_pred = _step_state(audio_state, denoised_audio_1, stepper, sigmas, step_idx)
+        if step_idx == n - 1 or float(sigma_next) == 0.0:
+            video_state, audio_state = video_pred, audio_pred
+            continue
+        denoised_video_2, denoised_audio_2 = denoiser(
+            transformer, video_pred, audio_pred, sigmas, step_idx + 1,
+        )
+
+        def _heun_step(state, state_pred, denoised_1, denoised_2):
+            if state is None or denoised_1 is None or denoised_2 is None:
+                return state
+            d1 = post_process_latent(denoised_1, state.denoise_mask, state.clean_latent)
+            d2 = post_process_latent(denoised_2, state.denoise_mask, state.clean_latent)
+            v1 = to_velocity(state.latent, sigma_curr, d1)
+            v2 = to_velocity(state_pred.latent, sigma_next, d2)
+            v_avg = 0.5 * (v1 + v2)
+            new_lat = (state.latent.to(torch.float32) + v_avg.to(torch.float32) * dt).to(state.latent.dtype)
+            return replace(state, latent=new_lat)
+
+        video_state = _heun_step(video_state, video_pred, denoised_video_1, denoised_video_2)
+        audio_state = _heun_step(audio_state, audio_pred, denoised_audio_1, denoised_audio_2)
+
+    return (video_state, audio_state)
+
+
 def gradient_estimating_euler_denoising_loop(
     sigmas: torch.Tensor,
     video_state: LatentState | None,

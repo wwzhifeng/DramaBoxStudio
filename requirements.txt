@@ -1,5 +1,5 @@
-torch>=2.1.0
-torchaudio>=2.1.0
+torch==2.4.0
+torchaudio==2.4.0
 safetensors>=0.4.0
 accelerate>=0.25.0
 peft>=0.7.0
@@ -8,3 +8,10 @@ av>=12.0.0
 einops>=0.7.0
 PyYAML>=6.0
 sentencepiece>=0.1.99
+transformers>=4.45.0
+huggingface_hub>=0.20.0,<1.0
+bitsandbytes>=0.43.0
+gradio>=4.0.0
+spaces>=0.30.0
+soundfile>=0.12.0
+resemble-perth @ git+https://github.com/resemble-ai/Perth.git@master

@@ -1,0 +1,53 @@
+# Example DramaBox IC-LoRA training config. Used by scripts/train.sh.
+
+# Where to load preprocessed `audio_latents/` + `conditions/` shards from.
+data_dir:
+- /path/to/preprocessed_dataset_a/
+- /path/to/preprocessed_dataset_b/
+
+# One index file per data_dir entry. Each line:
+#   <sample_id>~<speaker_id>~<lang>~<sample_rate>~<offset>~<duration>~<phonemes>~<text>
+speaker_index:
+- /path/to/preprocessed_dataset_a/index.txt
+- /path/to/preprocessed_dataset_b/index.txt
+
+# Output directory (relative is fine — resolved against the repo root).
+output_dir: tts_iclora_v1
+
+# LTX-2.3 22B base. Same file is used for the transformer + the aux stack
+# (PromptEncoder, AudioVAE, AudioDecoder).
+checkpoint: ltx-2.3-22b-dev.safetensors
+full_checkpoint: ltx-2.3-22b-dev.safetensors
+base_model: dev
+
+# LoRA hyperparams. rank == alpha is the simplest setup (scale = 1.0).
+lora_rank: 128
+lora_alpha: 128
+lora_dropout: 0.1
+
+# Voice-cloning ref-token settings.
+ref_ratio: 0.3            # fraction of training samples that get a ref token
+max_ref_tokens: 200       # max ref-token positions appended to target
+
+text_dropout: 0.4         # CFG training: drop the text prompt with prob 0.4
+
+# Schedule. Use lr_scheduler=constant with a small lr (1e-5) for a "fine-tune"
+# resume; cosine + larger lr (1e-4) for from-scratch.
+steps: 10000
+lr: 1.0e-04
+lr_scheduler: cosine
+warmup_steps: 500
+
+batch_size: 1
+grad_accum: 4
+max_grad_norm: 1.0
+
+save_every: 500
+log_every: 50
+seed: 53
+
+# (Optional) per-checkpoint validation eval — see configs/val_config.example.yaml
+# val_config: val_config.example.yaml
+
+# (Optional) resume from a previous LoRA adapter file:
+# resume_lora: tts_iclora_v0/lora_step_05000.safetensors

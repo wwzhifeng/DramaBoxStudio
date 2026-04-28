@@ -109,6 +109,50 @@ bash scripts/eval.sh --eval expressive --output eval_results/
 - Break long dialogue into segments with acting directions between them
 - End prompt at the last closing quote mark (no trailing descriptions)
 
+## Watermarking
+
+Every audio output from `inference.py` and `inference_server.TTSServer.generate_to_file` is automatically watermarked with [Resemble Perth](https://github.com/resemble-ai/Perth) — an imperceptible neural watermark that survives MP3 compression, audio editing, and common manipulations while maintaining nearly 100% detection accuracy.
+
+```python
+import perth, librosa
+wav, sr = librosa.load("output.wav", sr=None, mono=True)
+detector = perth.PerthImplicitWatermarker()
+print(detector.get_watermark(wav, sample_rate=sr))   # confidence ≈ 1.0 for our outputs
+```
+
+Pass `--no-watermark` to `inference.py` (or `watermark=False` to `generate_to_file`) to disable for debugging.
+
+## Training
+
+DramaBox is an IC-LoRA fine-tune of the LTX-2.3 22B audio-only branch. To train your own:
+
+```bash
+# 1. Preprocess raw (audio, transcript) pairs → audio_latents/ + conditions/
+python src/preprocess.py \
+  --dataset-type manifest \
+  --index your_data.jsonl \
+  --output-dir /path/to/preprocessed/ \
+  --checkpoint dramabox-audio-components.safetensors \
+  --gemma-root /path/to/gemma-3-12b-it-bnb-4bit/
+
+# 2. Edit configs/training_args.example.yaml → your data paths
+
+# 3. Launch (uses HuggingFace accelerate)
+bash scripts/train.sh \
+  --config configs/training_args.example.yaml \
+  --gpus 0,1,2,3,4,5,6 \
+  --train-val-gpu 7
+```
+
+| Script | Purpose |
+|---|---|
+| `src/preprocess.py` | Encode audio (Audio VAE) + text (Gemma) into training-ready `.pt` files |
+| `src/train.py` | IC-LoRA training loop with peft, accelerate multi-GPU, periodic validation |
+| `src/validate.py` | Spawned by `train.py` at each save step; runs the warm validator on a held-out prompt set |
+| `scripts/train.sh` | YAML-config wrapper around `accelerate launch src/train.py` |
+
+LoRA targets the audio branch only: `audio_attn1.{to_q,to_k,to_v,to_out.0}` + `audio_ff.{net.0.proj,net.2}` × 48 transformer blocks (288 LoRA pairs total). Default rank 128 / alpha 128 / dropout 0.1, cosine LR schedule from 1e-4 with 500-step warmup over 10k steps.
+
 ## Language
 
 English.

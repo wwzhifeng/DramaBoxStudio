@@ -107,7 +107,8 @@ EXAMPLES: list[tuple[str, str, str]] = [
 
 
 @spaces.GPU(duration=120)
-def on_generate(prompt: str, audio_ref, cfg: float, stg: float, dur_mult: float, seed: int):
+def on_generate(prompt: str, audio_ref, cfg: float, stg: float, dur_mult: float,
+                gen_dur: float, ref_dur: float, seed: int):
     if not prompt or not prompt.strip():
         raise gr.Error("Prompt is empty.")
     t0 = time.time()
@@ -119,6 +120,8 @@ def on_generate(prompt: str, audio_ref, cfg: float, stg: float, dur_mult: float,
         voice_ref=ref_path,
         cfg_scale=cfg, stg_scale=stg,
         duration_multiplier=dur_mult, seed=int(seed),
+        gen_duration=float(gen_dur),
+        ref_duration=float(ref_dur),
     )
     elapsed = time.time() - t0
     logging.info(f"Generated in {elapsed:.2f}s -> {output}")
@@ -126,13 +129,39 @@ def on_generate(prompt: str, audio_ref, cfg: float, stg: float, dur_mult: float,
 
 
 # ── UI ──────────────────────────────────────────────────────────────────────
+_BANNER_CSS = """
+.prompt-box textarea { font-size: 14px !important; line-height: 1.5 !important; }
+.ltx-banner {
+    background: linear-gradient(90deg, #1a1f3a 0%, #2a1f3a 100%);
+    border-left: 4px solid #ff6b35;
+    padding: 10px 16px;
+    margin: 0 0 12px 0;
+    border-radius: 6px;
+    color: #e8e8f0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.ltx-banner a { color: #ff9a6c; font-weight: 600; text-decoration: none; }
+.ltx-banner a:hover { text-decoration: underline; }
+.ltx-banner strong { color: #ffffff; }
+"""
+
 with gr.Blocks(
     title="DramaBox — Expressive TTS",
     theme=gr.themes.Default(),
-    css=".prompt-box textarea { font-size: 14px !important; line-height: 1.5 !important; }",
+    css=_BANNER_CSS,
     analytics_enabled=False,
 ) as app:
     gr.Markdown("# 🎭 DramaBox — Expressive TTS with Voice Cloning")
+    gr.HTML(
+        '<div class="ltx-banner">'
+        '🏗️&nbsp; Built on <a href="https://github.com/Lightricks/LTX-2">LTX-2</a> by '
+        '<a href="https://huggingface.co/Lightricks">Lightricks</a>. '
+        '<strong>DramaBox</strong> is <strong>Resemble AI\'s</strong> expressive TTS, '
+        'trained on top of the LTX-2.3 audio branch under the LTX-2 Community License. '
+        'Huge thanks to the Lightricks team for open-sourcing the base.'
+        '</div>'
+    )
     gr.Markdown(
         "Write a scene prompt, optionally upload a 10-second voice reference, "
         "and generate. Audio is automatically watermarked with "
@@ -159,7 +188,14 @@ with gr.Blocks(
             with gr.Accordion("Inference settings", open=False):
                 cfg_slider = gr.Slider(1.0, 10.0, value=2.5, step=0.5, label="CFG scale")
                 stg_slider = gr.Slider(0.0, 5.0, value=1.5, step=0.5, label="STG scale")
-                dur_slider = gr.Slider(0.8, 2.0, value=1.1, step=0.05, label="Duration ×")
+                dur_slider = gr.Slider(0.8, 2.0, value=1.1, step=0.05,
+                                       label="Duration × (only used when target duration = 0)")
+                gen_dur_slider = gr.Slider(0.0, 60.0, value=0.0, step=1.0,
+                                           label="Target duration (s) — 0 = auto from prompt; "
+                                                 "set higher (≥20s) for long-form music or scenes")
+                ref_dur_slider = gr.Slider(3.0, 30.0, value=10.0, step=1.0,
+                                           label="Reference duration (s) — how many seconds of the "
+                                                 "uploaded voice reference the model conditions on")
                 seed_input = gr.Number(value=42, label="Seed", precision=0)
             audio_out = gr.Audio(label="Generated audio", type="filepath")
             with gr.Accordion("Prompt writing guide", open=False):
@@ -176,7 +212,8 @@ with gr.Blocks(
 
     gen_btn.click(
         on_generate,
-        inputs=[prompt_box, audio_ref, cfg_slider, stg_slider, dur_slider, seed_input],
+        inputs=[prompt_box, audio_ref, cfg_slider, stg_slider,
+                dur_slider, gen_dur_slider, ref_dur_slider, seed_input],
         outputs=[audio_out],
     )
 
@@ -185,15 +222,17 @@ with gr.Blocks(
     gr.Examples(
         label="🎬 Click any row to generate a sample",
         examples=[
-            [name, prompt, voice_path, 2.5, 1.5, 1.1, 42]
+            [name, prompt, voice_path, 2.5, 1.5, 1.1, 0.0, 10.0, 42]
             for name, voice_path, prompt in EXAMPLES
         ],
         example_labels=[name for name, _, _ in EXAMPLES],
         inputs=[gr.Textbox(visible=False, label="Scene"),
                 prompt_box, audio_ref,
-                cfg_slider, stg_slider, dur_slider, seed_input],
+                cfg_slider, stg_slider, dur_slider, gen_dur_slider,
+                ref_dur_slider, seed_input],
         outputs=[audio_out],
-        fn=lambda _name, prompt, ref, cfg, stg, dur, seed: on_generate(prompt, ref, cfg, stg, dur, seed),
+        fn=lambda _name, prompt, ref, cfg, stg, dur, gen_dur, ref_dur, seed: on_generate(
+            prompt, ref, cfg, stg, dur, gen_dur, ref_dur, seed),
         cache_examples=False,
         run_on_click=True,
         examples_per_page=20,

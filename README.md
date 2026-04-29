@@ -1,11 +1,15 @@
 # DramaBox — Expressive TTS with Voice Cloning
 
-Prompt-driven TTS with voice cloning, built as an IC-LoRA fine-tune of the **LTX-2.3 3.3B audio-only**. The prompt itself controls speaker identity, emotion, delivery style, laughs, sighs, pauses and transitions; an optional 10-second voice reference clones the target timbre.
+> **Built on [LTX-2](https://github.com/Lightricks/LTX-2) by Lightricks.**
+> DramaBox is **Resemble AI's** expressive TTS, trained on top of the LTX-2.3 audio branch under the LTX-2 Community License. Huge thanks to the Lightricks team for open-sourcing the base.
+
+Prompt-driven TTS with voice cloning. The prompt itself controls speaker identity, emotion, delivery style, laughs, sighs, pauses and transitions; an optional 10-second voice reference clones the target timbre. DramaBox is an IC-LoRA fine-tune of the **LTX-2.3 3.3B audio-only** model.
 
 | | |
 |---|---|
 | 🤗 **Model** | [`ResembleAI/Dramabox`](https://huggingface.co/ResembleAI/Dramabox) |
 | 🎭 **Demo Space** | [`ResembleAI/Dramabox`](https://huggingface.co/spaces/ResembleAI/Dramabox) (ZeroGPU) |
+| 🏗️ **Base model** | [`Lightricks/LTX-2`](https://huggingface.co/Lightricks/LTX-2) |
 | 📜 **License** | LTX-2 Community License — see [`LICENSE`](LICENSE) |
 
 ## Models
@@ -189,6 +193,6 @@ Always load the LoRA at inference rather than pre-merging it — pre-merged chec
 
 English.
 
-## License
+## License & acknowledgement
 
-Built on [LTX-2](https://github.com/Lightricks/LTX-2) by Lightricks. Distributed under the LTX-2 Community License Agreement — see [`LICENSE`](LICENSE).
+DramaBox is a Resemble AI fine-tune of [LTX-2](https://github.com/Lightricks/LTX-2). Distributed under the LTX-2 Community License Agreement — see [`LICENSE`](LICENSE). Thanks again to Lightricks for releasing the base model.

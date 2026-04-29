@@ -230,7 +230,10 @@ def parse_args():
     p.add_argument("--output", default="tts_output.wav")
 
     p.add_argument("--ref-duration", type=float, default=10.0, help="Seconds of voice reference to use")
-    p.add_argument("--gen-duration", type=float, default=0.0, help="Target duration (0=auto)")
+    p.add_argument("--gen-duration", type=float, default=0.0,
+                   help="Target output duration in seconds (0 = auto from prompt + multiplier). "
+                        "Set explicitly for long-form prompts (e.g. --gen-duration 30 for music). "
+                        "Outputs >20.5s automatically engage the end-of-clip silence-prior patch.")
     p.add_argument("--pad-start", type=float, default=0.0,
                    help="Prepend N seconds of silent padding, trimmed after decode (use 0 for clean starts)")
     p.add_argument("--speed", type=float, default=1.0)
@@ -260,7 +263,9 @@ def parse_args():
     p.add_argument("--cfg-scale", type=float, default=None, help="CFG scale (auto: 1.0 distilled, 7.0 dev)")
     p.add_argument("--stg-scale", type=float, default=None, help="STG scale (auto: 0.0 distilled, 1.0 dev)")
     p.add_argument("--stg-block", type=int, default=29, help="Block index for STG perturbation")
-    p.add_argument("--rescale-scale", type=float, default=None, help="Rescale (auto: 0.0 distilled, 0.7 dev)")
+    p.add_argument("--rescale-scale", type=float, default=None,
+                   help="Latent CFG std-rescale (default auto: cfg-aware schedule that prevents "
+                        "output clipping at high cfg; pass any float in [0,1] to override).")
     p.add_argument("--modality-scale", type=float, default=None, help="Modality (auto: 1.0 distilled, 3.0 dev)")
     p.add_argument("--cfg-clamp", type=float, default=0.0, help="Clamp guided pred std to N * cond std (0=disabled)")
     p.add_argument("--steps", type=int, default=None, help="Override steps (auto: distilled sigmas / 30 dev)")
@@ -324,7 +329,9 @@ def main():
     if args.stg_scale is None:
         args.stg_scale = 0.0 if is_distilled else 1.0
     if args.rescale_scale is None:
-        args.rescale_scale = 0.0 if is_distilled else 0.7
+        # Auto cfg-aware rescale: imported from inference_server to keep one source of truth.
+        from inference_server import auto_rescale_for_cfg
+        args.rescale_scale = 0.0 if is_distilled else auto_rescale_for_cfg(args.cfg_scale)
     if args.modality_scale is None:
         args.modality_scale = 1.0 if is_distilled else 3.0
     if args.fps is None:

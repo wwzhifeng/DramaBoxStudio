@@ -60,6 +60,34 @@ def estimate_duration(prompt, multiplier=1.1):
     return max(3.0, round(base * multiplier, 1))
 
 
+def auto_rescale_for_cfg(cfg: float) -> float:
+    """CFG-aware std-rescale schedule that prevents output clipping at high cfg.
+
+    The CFG formula `pred = cond + (cfg-1)*(cond - uncond)` makes pred.std()
+    grow roughly linearly with cfg, which the audio VAE+vocoder render as
+    progressively louder waveforms. By cfg≈3 the output starts hard-clipping
+    at 0 dBFS — and clipped information is unrecoverable in post.
+
+    Empirical sweep on the blues prompt with the back-porch-boogie ref
+    (rescale_scale needed for ≥1 dB peak headroom):
+        cfg=2.5 → 0.2 ;  cfg=3 → 0.6 ; cfg=4 → 0.8 ; cfg=5–8 → 0.8 ; cfg=10 → 1.0
+
+    Piecewise-linear fit through those points; returns 0 below cfg=2 (no CFG
+    even applied at cfg=1), plateaus at 0.8 between cfg=4 and cfg=8 to
+    preserve the "extra punch" of high-CFG generations, and ramps to 1.0 by
+    cfg=10.
+    """
+    if cfg <= 2.0:
+        return 0.0
+    if cfg <= 3.0:
+        return 0.6 * (cfg - 2.0)               # 0 → 0.6
+    if cfg <= 4.0:
+        return 0.6 + 0.2 * (cfg - 3.0)         # 0.6 → 0.8
+    if cfg <= 8.0:
+        return 0.8                              # plateau
+    return min(1.0, 0.8 + 0.1 * (cfg - 8.0))   # 0.8 → 1.0 at cfg=10
+
+
 class TTSServer:
     def __init__(self, checkpoint=None, full_checkpoint=None, gemma_root=None,
                  device="cuda", dtype="bf16", compile_model=True, bnb_4bit=True):
@@ -177,12 +205,23 @@ class TTSServer:
 
     @torch.inference_mode()
     def generate(self, prompt, voice_ref=None, cfg_scale=2.5, stg_scale=1.5,
-                 duration_multiplier=1.1, seed=42, ref_duration=10.0):
-        """Generate audio. Returns (waveform_path, duration_seconds)."""
+                 duration_multiplier=1.1, seed=42, ref_duration=10.0,
+                 rescale_scale="auto", gen_duration: float = 0.0):
+        """Generate audio. Returns (waveform_path, duration_seconds).
+
+        rescale_scale: latent-side CFG std-rescale that prevents clipping at
+            high cfg. Set to "auto" (default) for the cfg-aware schedule, a
+            float in [0, 1] for a fixed override, or 0 to disable.
+        gen_duration: explicit target duration in seconds. 0 (default) → auto
+            from prompt + duration_multiplier; >0 overrides everything else.
+        """
         t_total = time.time()
 
-        # Duration + target shape
-        gen_dur = estimate_duration(prompt, duration_multiplier)
+        # Duration + target shape — explicit gen_duration wins over the estimator.
+        if gen_duration and gen_duration > 0:
+            gen_dur = float(gen_duration)
+        else:
+            gen_dur = estimate_duration(prompt, duration_multiplier)
         fps = 25.0
         n_frames = int(round(gen_dur * fps)) + 1
         n_frames = ((n_frames - 1 + 4) // 8) * 8 + 1
@@ -231,10 +270,13 @@ class TTSServer:
         logging.info(f"Prompt: {time.time()-t0:.2f}s")
 
         # Denoiser
+        resc = auto_rescale_for_cfg(cfg_scale) if rescale_scale == "auto" else float(rescale_scale)
+        if rescale_scale == "auto":
+            logging.info(f"Auto rescale_scale = {resc:.2f} for cfg={cfg_scale}")
         guider = MultiModalGuider(
             params=MultiModalGuiderParams(
                 cfg_scale=cfg_scale, stg_scale=stg_scale,
-                stg_blocks=[29], rescale_scale=0.0, modality_scale=1.0,
+                stg_blocks=[29], rescale_scale=resc, modality_scale=1.0,
             ),
             negative_context=a_ctx_neg,
         )

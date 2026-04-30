@@ -103,6 +103,64 @@ EXAMPLES: list[tuple[str, str, str]] = [
         'A confident announcer speaks proudly, "And now, the moment you have all been waiting for." '
         'He chuckles knowingly, "Heheh, trust me, this one is going to blow you away."',
     ),
+    # ── Long-form examples (~30 s each) ───────────────────────────────────────
+    # These pair a richer multi-beat scene with gen_duration = 30 s in the
+    # Examples row below so the model is asked for a full half-minute clip.
+    (
+        "30s • Villain soliloquy",
+        os.path.join(_VOICES_DIR, "male_harvey_keitel.mp3"),
+        'A shadowy villain stands at the edge of his throne room, gazing into the dark. '
+        'He speaks with slow, measured menace, "So, the little hero has come to finish me, has he?" '
+        'He chuckles low and humourless, "Hehe, oh how delightfully predictable you mortals are." '
+        'His voice hardens into ice, "I have lived ten thousand years. I have seen empires rise and fall like the tide." '
+        'He scoffs, "And you think you, with your borrowed sword and your trembling hands, will be the one to end me?" '
+        'A long pause. He whispers, almost tenderly, "I will give you a single chance to turn around and walk away." '
+        'Then his voice rises with crushing finality, "Choose, child. The door behind you, or the grave at your feet."',
+    ),
+    (
+        "30s • Late-night radio monologue",
+        os.path.join(_VOICES_DIR, "male_old_movie.wav"),
+        'A radio host clears his throat softly into the microphone in the late hours of the night. '
+        'He settles into a warm, smoky tone, "Good evening, dear listeners, and welcome back to the After Hours Hour." '
+        'He sighs contentedly, "Mmm, what a night it has been. The rain is tapping at my window like an old friend." '
+        'He chuckles softly, "Heheh, you know the kind of friend, the one that always shows up unannounced." '
+        'His voice drops, intimate, "I want you to lean back, wherever you are. Pour yourself something warm." '
+        'He pauses, breath audible, "Tonight we are going to talk about love, and loss, and the songs that hold us together." '
+        'A smile in his voice, "And I have got the perfect record cued up to start us off, so stay right where you are."',
+    ),
+    (
+        "30s • Stand-up wheeze-laugh",
+        os.path.join(_VOICES_DIR, "male_conan.mp3"),
+        'A talk show host walks out and the crowd is already roaring. He gasps in mock outrage, "No! No no no!" '
+        'He bursts into uncontrollable laughter, "Hahahaha, oh my god, oh my god, you cannot do that to me already!" '
+        'He wheezes, gasping for air, "I have not even, hahaha, I have not even said hello yet!" '
+        'He tries to compose himself, "Okay, okay, just give me a second here, give me a second." '
+        'He clears his throat dramatically, "Ahem. Good evening, ladies and gentlemen." '
+        'Then he loses it again, "Hahaha! No, sorry, sorry, I just remembered what happened in the green room." '
+        'He pants, "Oh man, oh man, this is going to be one of those nights, I can already tell."',
+    ),
+    (
+        "30s • Bedtime story",
+        os.path.join(_VOICES_DIR, "female_shadowheart.wav"),
+        'A mother sits at the edge of her child\'s bed in the dim glow of a single lamp. '
+        'She speaks softly, "Once upon a time, in a kingdom by the sea, there lived a small dragon named Pip." '
+        'She lowers her voice playfully, "Now Pip was not like the other dragons. Pip was afraid of fire." '
+        'She smiles warmly, "Mmm, can you imagine? A dragon who was afraid of his own breath?" '
+        'A gentle pause, "But Pip had something the other dragons did not have. Pip had courage in his heart." '
+        'She hums softly, "Mmmmm. And one cold winter night, when the village below ran out of warmth..." '
+        'Her voice drops to a whisper, "Pip closed his eyes, took a deep, deep breath, and remembered who he was."',
+    ),
+    (
+        "30s • Sports commentary",
+        os.path.join(_VOICES_DIR, "male_samuel_j.mp3"),
+        'A sports commentator leans into the microphone with the crowd roaring around him. '
+        'He shouts with rising energy, "Oh, this is it! This is the moment we have been waiting for all season!" '
+        'He pants between phrases, "She has the ball at midfield, she is dribbling past one, past two!" '
+        'A sudden gasp, "Oh my, what a move! Did you see that footwork, ladies and gentlemen?" '
+        'His voice climbs, "She is twenty yards out, fifteen yards out, she winds back, and she SHOOTS!" '
+        'A massive pause, then, "GOAAAAAAL! What a strike! What an absolute thunderbolt of a goal!" '
+        'He laughs in disbelief, "Hahaha! Unbelievable! Forty thousand fans on their feet, and so am I!"',
+    ),
 ]
 
 
@@ -222,7 +280,10 @@ with gr.Blocks(
     gr.Examples(
         label="🎬 Click any row to generate a sample",
         examples=[
-            [name, prompt, voice_path, 2.5, 1.5, 1.1, 0.0, 10.0, 42]
+            # rows tagged "30s •" force a 30-second target duration; the rest
+            # use the prompt-driven auto estimate (gen_dur = 0).
+            [name, prompt, voice_path, 2.5, 1.5, 1.1,
+             30.0 if name.startswith("30s") else 0.0, 10.0, 42]
             for name, voice_path, prompt in EXAMPLES
         ],
         example_labels=[name for name, _, _ in EXAMPLES],

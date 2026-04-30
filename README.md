@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/Dramabox.png" alt="DramaBox" width="720"/>
+</p>
+
 # DramaBox — Expressive TTS with Voice Cloning
 
 > **Built on [LTX-2](https://github.com/Lightricks/LTX-2) by Lightricks.**

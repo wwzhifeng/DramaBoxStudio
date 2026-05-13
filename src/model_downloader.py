@@ -17,10 +17,7 @@ DRAMABOX_REPO = "ResembleAI/Dramabox"
 GEMMA_REPO = "unsloth/gemma-3-12b-it-bnb-4bit"
 
 # Default cache directory
-DEFAULT_CACHE = os.environ.get(
-    "DRAMABOX_CACHE",
-    os.path.join(os.path.expanduser("~"), ".cache", "dramabox"),
-)
+DEFAULT_CACHE = os.path.join(os.environ.get("HF_HOME", os.path.expanduser("~")), ".cache", "dramabox")
 
 # Model files in the HF repo (flat structure)
 MODEL_FILES = {

@@ -171,7 +171,7 @@ def on_generate(prompt: str, audio_ref, cfg: float, stg: float, dur_mult: float,
         raise gr.Error("Prompt is empty.")
     t0 = time.time()
     ref_path = audio_ref if audio_ref and os.path.exists(str(audio_ref)) else None
-    output = tempfile.mktemp(suffix=".wav", prefix="dramabox_")
+    output = tempfile.mktemp(suffix=".wav", prefix="dramabox_", dir="output")
     tts.generate_to_file(
         prompt=prompt,
         output=output,

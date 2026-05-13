@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="assets/Dramabox.png" alt="DramaBox" width="720"/>
+  <a href="https://www.resemble.ai/learn/models/dramabox">
+    <img src="assets/Dramabox.png" alt="DramaBox" width="720"/>
+  </a>
 </p>
 
 # DramaBox — Expressive TTS with Voice Cloning

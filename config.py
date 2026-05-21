@@ -2,7 +2,23 @@
 DramaBox 配置 — 所有路径相对项目根，离线可用。
 启动时自动检测 GPU 显存，按档位选择量化/加载策略。
 """
+import logging
+import os
+import warnings
 from pathlib import Path
+
+# ── 屏蔽第三方库噪音 ──────────────────────────────
+os.environ.setdefault("TORCH_DISTRIBUTED_DEBUG", "OFF")
+os.environ.setdefault("TQDM_DISABLE", "1")
+warnings.filterwarnings("ignore")
+for _name in ("transformers", "diffusers", "torch.distributed", "torch._dynamo",
+              "torch.distributed.elastic.multiprocessing", "ltx_pipelines", "ltx_core"):
+    logging.getLogger(_name).setLevel(logging.ERROR)
+
+# 一刀切：屏蔽所有含 "Uninitialized" 的垃圾日志
+_UninitializedFilter = logging.Filter("UninitializedFilter")
+_UninitializedFilter.filter = lambda r: "Uninitialized" not in r.getMessage()
+logging.getLogger().addFilter(_UninitializedFilter)
 
 ROOT = Path(__file__).resolve().parent
 
@@ -11,6 +27,7 @@ MODELS_DIR     = ROOT / "models"
 CHECKPOINT_DIR = MODELS_DIR / "checkpoints"
 GEMMA_DIR      = MODELS_DIR / "gemma"
 VOICES_DIR     = MODELS_DIR / "voices"
+VOICES_JSON    = MODELS_DIR / "voices.json"
 OUTPUT_DIR     = ROOT / "output"
 TMP_DIR        = ROOT / "tmp"
 
@@ -42,7 +59,7 @@ def _detect_vram_gb() -> float:
         if not torch.cuda.is_available():
             return 0.0
         prop = torch.cuda.get_device_properties(0)
-        return prop.total_mem / (1024 ** 3)
+        return prop.total_memory / (1024 ** 3)
     except Exception:
         return 0.0
 

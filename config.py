@@ -50,22 +50,22 @@ def _detect_vram_gb() -> float:
 # 自动选定策略（可在 import 后覆写）
 _vram = _detect_vram_gb()
 
-if _vram >= 24:
+if _vram >= 20:
     USE_INT8  = False
     LOW_VRAM  = False
     _tier_msg = f"显存 {_vram:.1f}G → 性能档（全 BF16，模型常驻）"
-elif _vram >= 14:
+elif _vram >= 10:
     USE_INT8  = True
     LOW_VRAM  = True
-    _tier_msg = f"显存 {_vram:.1f}G → 均衡档（INT8 + 顺序加载）"
-elif _vram >= 8:
+    _tier_msg = f"显存 {_vram:.1f}G → 均衡档（INT8 + Gemma CPU 搬运）"
+elif _vram >= 6:
     USE_INT8  = True
     LOW_VRAM  = True
-    _tier_msg = f"显存 {_vram:.1f}G → 低显存档（INT8 + 按需加载）"
+    _tier_msg = f"显存 {_vram:.1f}G → 低显存档（编码时 DiT 也卸 CPU，峰值 ~8G）"
 elif _vram > 0:
     USE_INT8  = True
     LOW_VRAM  = True
-    _tier_msg = f"显存 {_vram:.1f}G → 极限档（可能 OOM，建议 8G+ 显卡）"
+    _tier_msg = f"显存 {_vram:.1f}G → 极限档（可能 OOM）"
 else:
     USE_INT8  = True
     LOW_VRAM  = True

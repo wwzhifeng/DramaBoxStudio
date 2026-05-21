@@ -40,10 +40,11 @@ def parse_script(text: str) -> list[dict]:
             content = line
 
         # 去掉首尾引号
-        if content.startswith('"') and content.endswith('"'):
-            content = content[1:-1]
-        if content.startswith("""") and content.endswith(""""):
-            content = content[1:-1]
+        for _q in ('"', "'", '“', '”', '‘', '’', '＂', '「', '」'):
+            if content.startswith(_q):
+                content = content[len(_q):]
+            if content.endswith(_q):
+                content = content[:-len(_q)]
 
         if not content:
             continue

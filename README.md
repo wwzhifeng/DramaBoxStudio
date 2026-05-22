@@ -129,12 +129,26 @@ Open `http://localhost:7860` in your browser.
 
 ---
 
-## Features in Development
+## Roadmap
 
-- [ ] Structured prompt builder (fill-in-the-blank UI)
+- [ ] Structured prompt builder (visual fill-in-the-blank UI)
 - [ ] Streaming audio playback
 - [ ] Batch export with subtitle (.srt) generation
+- [ ] More Chinese reference voices
 - [ ] Chinese LoRA fine-tune for native-level Mandarin prosody
+
+---
+
+## Contributing
+
+Contributions are welcome! This is a community project — if you have ideas, bug fixes, or want to add features:
+
+- **Bug report / Feature request:** [Open an Issue](../../issues)
+- **Code contribution:** Fork the repo, create a branch, [open a Pull Request](../../pulls)
+- **Share your prompts:** Found a great prompt recipe? Share it in Discussions
+- **Chinese voices:** Have a clean 10s+ Chinese voice sample? Contributions to the voice library are especially welcome
+
+If you're not sure where to start, check the [Roadmap](#roadmap) above or look for issues tagged `good first issue`.
 
 ---
 

@@ -57,7 +57,7 @@ Unzip, double-click `DramaBoxStudio.bat`, open `http://localhost:7860`.
 **Step 1: Clone**
 
 ```bash
-git clone https://github.com/wangzhifeng/DramaBoxStudio.git
+git clone https://github.com/wwzhifeng/DramaBoxStudio.git
 cd DramaBoxStudio
 ```
 

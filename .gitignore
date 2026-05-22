@@ -16,6 +16,9 @@ WZF312/
 output/*.wav
 output/*.mp3
 
+# Demo video source (copy in assets/)
+功能展示.mp4
+
 # Local dev / packaging
 tmp/
 打包不带/

@@ -41,7 +41,9 @@ A community distribution of **Resemble AI's DramaBox** — expressive, prompt-dr
 
 Download the all-in-one package (embedded Python + models included):
 
-> [Download link — coming soon]
+> [Download — wangzhifeng.vip](https://wangzhifeng.vip/)
+> 
+> Win系统一键启动整合包，解压即用。含嵌入式 Python 环境 + 全部模型权重。
 
 Unzip, double-click `DramaBoxStudio.bat`, open `http://localhost:7860`.
 

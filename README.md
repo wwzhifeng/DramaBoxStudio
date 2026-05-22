@@ -91,7 +91,23 @@ python app.py
 
 Open `http://localhost:7860` in your browser.
 
-> First launch downloads ~16 GB of model weights from HuggingFace. This may take 10–30 minutes depending on your network. Subsequent launches load in ~10 seconds.
+### Model Download
+
+Models are **auto-downloaded** on first launch from HuggingFace — no manual setup required.
+
+| Model | Source | Size |
+|---|---|---|
+| DiT Transformer | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | 6.6 GB |
+| Audio Components (VAE + Vocoder) | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | 1.9 GB |
+| Text Encoder (Gemma 3 12B, 4-bit) | [unsloth/gemma-3-12b-it-bnb-4bit](https://huggingface.co/unsloth/gemma-3-12b-it-bnb-4bit) | ~8 GB |
+
+**Total: ~16 GB. First launch may take 10–30 minutes. Subsequent launches load in ~10 seconds.**
+
+> If HuggingFace is slow in your region, set a mirror before launching:
+> ```bash
+> set HF_ENDPOINT=https://hf-mirror.com
+> python app.py
+> ```
 
 ---
 

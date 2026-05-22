@@ -31,7 +31,7 @@ A community distribution of **Resemble AI's DramaBox** — expressive, prompt-dr
 
 ## Demo
 
-Watch the demo video: **[Download MP4](assets/demo.mp4)** (1.8 MB)
+![Demo Video](assets/demo.gif)
 
 ---
 

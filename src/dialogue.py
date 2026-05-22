@@ -18,22 +18,26 @@ _LINE_RE = re.compile(r"^(.+?)[：:]\s*(.+)$")
 # 模型(DramaBox)情感表演用英文自然语言效果最好，故指令走英文；UI 标签保持中文。
 # 想调某个情绪的强弱/效果，只改右边这句英文即可（生成后用耳朵听着调）。
 EMOTION_PRESETS: dict[str, str] = {
-    "正常": "The speaker says",
-    "开心": "The speaker says cheerfully, in a warm and happy tone",
-    "兴奋": "The speaker says with great excitement and energy",
-    "愤怒": "The speaker shouts angrily, with rage and force",
-    "悲伤": "The speaker says sadly, voice heavy with grief",
-    "恐惧": "The speaker says fearfully, voice tense and trembling",
-    "温柔": "The speaker says gently and tenderly",
-    "深情": "The speaker says with deep, heartfelt affection",
-    "惊讶": "The speaker says with shock and disbelief",
-    "大笑": "The speaker laughs heartily while speaking",
-    "冷漠": "The speaker says coldly and flatly, with detached indifference",
-    "讽刺": "The speaker says with mocking, biting sarcasm",
-    "严肃": "The speaker says in a grave, stern, serious tone",
-    "疲惫": "The speaker says wearily, sounding drained and exhausted",
-    "撒娇": "The speaker says in a sweet, playful, pouty tone, dragging out the words coyly",
-    "命令": "The speaker says forcefully, in a sharp commanding tone",
+    "正常": "语气平静自然地说道",
+    "开心": "心情愉悦、语气温暖，带着藏不住的笑意爽朗地说道",
+    "兴奋": "情绪饱满、语速加快、铿锵有力地大声说道",
+    "愤怒": "怒火中烧、咬牙切齿，猛地拔高音量厉声怒喝道",
+    "悲伤": "声音哽咽、字字沉重，强忍着泪意悲伤地说道",
+    "恐惧": "声音发颤、气息急促不稳，惊恐不安地说道",
+    "温柔": "放轻了声音、语气绵软温暖，柔声细语地说道",
+    "深情": "饱含深情、语气真挚动人，缱绻款款地诉说道",
+    "惊讶": "猛地一愣、语气陡然加重，难以置信地沉声说道",
+    "大笑": "再也忍俊不禁、爽朗放声大笑着说道",
+    "冷漠": "语气平淡疏离、不带一丝起伏，冷冷地说道",
+    "讽刺": "嘴角噙着冷笑、阴阳怪气地拉长腔调讥讽道",
+    "严肃": "神色一沉、语气凝重，一字一顿地郑重说道",
+    "疲惫": "声音低沉乏力、有气无力，疲惫地缓缓叹道",
+    "命令": "语气强硬、不容置疑，居高临下地厉声命令道",
+    # 天生偏女性化的语气，UI 标注（女声），避免用在男声音色上变声
+    "撒娇（女声）": "嗲声嗲气、尾音上扬并娇软地拖长，撒娇耍赖地说道",
+    "娇媚（女声）": "声音甜糯柔媚、缠绵婉转，带着三分娇、七分媚，眼波流转般妩媚动人地低声说道",
+    "媚惑（女声）": "嗓音低柔微哑、黏糯缠绵，字字慢条斯理地勾着尾音，含着一抹勾魂摄魄的笑意，魅惑撩人地低声说道",
+    "性感低语（女声）": "把声音压到极低极软、几乎全是温热的气声，像凑在耳边、欲语还休地轻吐每个字，慵懒而极尽性感地呢喃道",
 }
 # 供 UI 下拉使用的标签列表（中文）
 EMOTION_LABELS: list[str] = list(EMOTION_PRESETS.keys())
@@ -107,9 +111,9 @@ def generate_dialogue(
         emotion = item.get("emotion") or "正常"
         ref = voice_map.get(char) if char else None
 
-        # 官方格式：英文导演指令在引号外（不会被念出），中文台词在双引号内（原样念）
+        # 官方格式：导演指令在引号外（不会被念出），台词在双引号内（原样念）
         directive = EMOTION_PRESETS.get(emotion, EMOTION_PRESETS["正常"])
-        prompt = f'{directive}, "{line}"'
+        prompt = f'{directive}，"{line}"'
 
         log.info(f"[{i+1}/{total}] {char}: {line[:40]}...")
         if progress_cb:

@@ -298,32 +298,40 @@ CSS = _build_font_css() + "\n" + CSS
 _VOICES_DIR = APP_DIR / "assets" / "voices"
 
 EXAMPLES: list[tuple[str, str, str]] = [
-    ("反派独白", str(_VOICES_DIR / "male_harvey_keitel.mp3"),
-     'A shadowy villain speaks with cold menace, "You have entered my domain, mortal." '
-     'He chuckles darkly, "Such arrogance will be your undoing."'),
-    ("脱口秀主持人大笑", str(_VOICES_DIR / "male_conan.mp3"),
-     'A talk show host gasps with shock, "No! You did NOT just say that!" '
-     'He bursts into uncontrollable laughter, "Hahaha! Oh my god!"'),
-    ("温柔低语", str(_VOICES_DIR / "female_shadowheart.wav"),
-     'A woman speaks tenderly, "It has been a long day, my love." '
-     'She whispers, "Close your eyes. I am right here."'),
-    ("老式电台主播", str(_VOICES_DIR / "male_old_movie.wav"),
-     'A radio host settles into a warm tone, "Good evening everyone, '
-     'and welcome back to the show. We have a wonderful lineup tonight."'),
-    ("少年英雄", str(_VOICES_DIR / "male_arnie.mp3"),
-     'A young warrior speaks with a trembling voice, "I... I do not know if I can do this." '
-     'His voice steadies with fire, "No more running. I WILL fight!"'),
-    ("疲惫父亲", str(_VOICES_DIR / "male_petergriffin.wav"),
-     'An exhausted father speaks with fraying patience, "Sweetie, daddy is asking very nicely." '
-     'He sighs deeply, "Ohhhh my goodness."'),
+    ("黑帮大佬·阴冷威胁", str(_VOICES_DIR / "male_harvey_keitel.mp3"),
+     '一个上了年纪的黑帮大佬，声音沙哑低沉、不动声色却暗藏杀气，'
+     '"你以为，走进这扇门，还能活着出去？" '
+     '他低低地笑了几声，笑里藏刀，"年轻人……是谁给你的胆子。"'),
+    ("暴怒训斥·拍案而起", str(_VOICES_DIR / "male_samuel_j.mp3"),
+     '一个男人强压着怒火，一字一顿、咬字极重，"我，再问你，最后一遍——东西在哪儿。" '
+     '话音未落他猛地一拍桌子，声音轰然炸开，"别逼我亲自动手！"'),
+    ("脱口秀·笑到窒息", str(_VOICES_DIR / "male_conan.mp3"),
+     '一个脱口秀主持人倒吸一口凉气，难以置信地喊，"不是吧！这话你也敢说？" '
+     '紧接着他再也忍不住，放声狂笑，"哈哈哈哈——我的天，我要笑死了，喘不上气了！"'),
+    ("深夜电台·治愈低语", str(_VOICES_DIR / "male_old_movie.wav"),
+     '一个低沉磁性的男声，慢悠悠地、像贴着耳边轻语，"夜深了，还没睡的朋友，这首歌，送给此刻有心事的你。" '
+     '他顿了顿，声音愈发温柔，"别撑着了……今晚，好好睡一觉吧。"'),
+    ("热血少年·绝地觉醒", str(_VOICES_DIR / "male_arnie.mp3"),
+     '一个少年的声音起初还在发颤、带着哭腔，"我……我真的做得到吗？" '
+     '忽然像是下定了决心，声音一字一句地坚定起来，最后嘶吼出声，"够了！这一次——我绝不再逃！"'),
+    ("醉酒老爸·深夜倾诉", str(_VOICES_DIR / "male_petergriffin.wav"),
+     '一个中年男人喝多了，舌头有些打结、声音疲惫又哽咽，"儿子啊……爸这辈子没本事，让你跟着受委屈了。" '
+     '他重重地叹了口气，"你可……一定要比爸强啊。"'),
+    ("宫斗娘娘·笑里藏刀", str(_VOICES_DIR / "female_shadowheart.wav"),
+     '一个女人柔声细语、语气温婉得体，"妹妹这身衣裳，真是好看。" '
+     '话锋陡然一转，声音里渗出阴冷的笑意，"只可惜啊……怕是没机会再穿第二回了。"'),
+    ("甜妹撒娇·黏人精（女声）", str(_VOICES_DIR / "female_american.wav"),
+     '一个年轻女人嗲声嗲气、尾音软软地往上勾，"哎呀人家不管啦～你今天答应过要陪我的嘛！" '
+     '她故意把声音拖得长长的撒娇，"就去嘛就去嘛，好不好嘛～"'),
 ]
 
 
 # ── 回调函数 ─────────────────────────────────────────
 
 def on_generate(prompt: str, audio_ref, cfg: float, stg: float,
-                dur_mult: float, gen_dur: float, ref_dur: float, seed: int):
-    """单句生成。参考音频来自下方播放器（选音色会载入这里，或直接上传）。"""
+                dur_mult: float, gen_dur: float, ref_dur: float, seed: int,
+                speed: float = 1.0):
+    """单句生成。参考音频来自下方播放器（选音色会载入这里，或直接上传）。speed=语速倍率。"""
     if not prompt or not prompt.strip():
         raise gr.Error("请输入提示词。")
     t0 = time.time()
@@ -335,6 +343,13 @@ def on_generate(prompt: str, audio_ref, cfg: float, stg: float,
         duration_multiplier=dur_mult, seed=int(seed),
         gen_duration=float(gen_dur), ref_duration=float(ref_dur),
     )
+    # 语速调节（变速不变调，PyAV atempo，自包含离线）
+    if speed and abs(float(speed) - 1.0) >= 0.02:
+        try:
+            from audio_speed import change_speed
+            output = change_speed(output, float(speed))
+        except Exception as e:
+            log.warning(f"语速调节失败，输出原速: {e}")
     dur = time.time() - t0
     log.info(f"生成: {dur:.1f}s → {output}")
     return output
@@ -429,8 +444,8 @@ def on_parse_script(text: str):
     return updates + dropdown_updates + emotion_updates + [title_update, parsed_json, status]
 
 
-def on_generate_dialogue(parsed_lines, *dropdown_values):
-    """批量生成对话。dropdown_values = 前 8 个音色下拉 + 后 N 个逐句情感下拉。"""
+def on_generate_dialogue(parsed_lines, speed, *dropdown_values):
+    """批量生成对话。speed=语速倍率；dropdown_values = 前 8 个音色下拉 + 后 N 个逐句情感下拉。"""
     if not parsed_lines:
         raise gr.Error("请先解析剧本。")
     voices = dropdown_values[:8]
@@ -454,6 +469,13 @@ def on_generate_dialogue(parsed_lines, *dropdown_values):
     out = generate_dialogue(lines_with_emotion, voice_map, tts, progress_cb)
     if out is None:
         raise gr.Error("生成失败。")
+    # 语速调节（变速不变调）
+    if speed and abs(float(speed) - 1.0) >= 0.02:
+        try:
+            from audio_speed import change_speed
+            out = change_speed(out, float(speed))
+        except Exception as e:
+            log.warning(f"语速调节失败，输出原速: {e}")
     return out
 
 
@@ -538,13 +560,15 @@ with gr.Blocks(
                         gen_dur_slider = gr.Slider(0.0, 60.0, value=0.0, step=1.0,
                                                    label="目标时长（秒）— 0 = 自动")
                         ref_dur_slider = gr.Slider(3.0, 30.0, value=10.0, step=1.0, label="参考音频时长（秒）")
+                        speed_slider = gr.Slider(0.5, 2.0, value=1.0, step=0.05,
+                                                 label="语速（1=原速，>1 加速，<1 减速；变速不变调）")
                         seed_input = gr.Number(value=SEED, label="随机种子", precision=0)
                     audio_out = gr.Audio(label="生成结果", type="filepath")
 
             gen_btn.click(
                 on_generate,
                 inputs=[prompt_box, audio_ref, cfg_slider, stg_slider,
-                        dur_slider, gen_dur_slider, ref_dur_slider, seed_input],
+                        dur_slider, gen_dur_slider, ref_dur_slider, seed_input, speed_slider],
                 outputs=[audio_out],
             )
 
@@ -604,7 +628,8 @@ with gr.Blocks(
                             voice_drops.append(vd)
 
                     emotion_title = gr.Markdown(
-                        "**🎭 逐句情感** · 每句台词挑一个情绪（默认正常）", visible=False)
+                        "**🎭 逐句情感** · 每句台词挑一个情绪（默认正常）"
+                        "　|　标〔女声〕的请只用于女性音色，否则可能变声", visible=False)
                     emotion_drops = []
                     for i in range(MAX_EMOTION_LINES):
                         ed = gr.Dropdown(
@@ -613,6 +638,8 @@ with gr.Blocks(
                         )
                         emotion_drops.append(ed)
 
+                    dlg_speed = gr.Slider(0.5, 2.0, value=1.0, step=0.05,
+                                          label="语速（1=原速，>1 加速，<1 减速；变速不变调）")
                     dialogue_gen_btn = gr.Button("🎬 生成完整对话", variant="primary", visible=False)
                     dialogue_out = gr.Audio(label="完整对话音频", type="filepath")
 
@@ -631,7 +658,7 @@ with gr.Blocks(
 
             dialogue_gen_btn.click(
                 on_generate_dialogue,
-                inputs=[parsed_state] + voice_drops + emotion_drops,
+                inputs=[parsed_state, dlg_speed] + voice_drops + emotion_drops,
                 outputs=[dialogue_out],
             )
 

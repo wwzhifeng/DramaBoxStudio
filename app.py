@@ -298,31 +298,49 @@ CSS = _build_font_css() + "\n" + CSS
 _VOICES_DIR = APP_DIR / "assets" / "voices"
 
 EXAMPLES: list[tuple[str, str, str]] = [
-    ("黑帮大佬·阴冷威胁", str(_VOICES_DIR / "male_harvey_keitel.mp3"),
-     '一个上了年纪的黑帮大佬，声音沙哑低沉、不动声色却暗藏杀气，'
+    ("黑帮大佬·阴冷威胁", str(_VOICES_DIR / "male_gangster.wav"),
+     'An aging mob boss speaks in a gravelly, quiet voice, calm but pulsing with menace, '
      '"你以为，走进这扇门，还能活着出去？" '
-     '他低低地笑了几声，笑里藏刀，"年轻人……是谁给你的胆子。"'),
-    ("暴怒训斥·拍案而起", str(_VOICES_DIR / "male_samuel_j.mp3"),
-     '一个男人强压着怒火，一字一顿、咬字极重，"我，再问你，最后一遍——东西在哪儿。" '
-     '话音未落他猛地一拍桌子，声音轰然炸开，"别逼我亲自动手！"'),
-    ("脱口秀·笑到窒息", str(_VOICES_DIR / "male_conan.mp3"),
-     '一个脱口秀主持人倒吸一口凉气，难以置信地喊，"不是吧！这话你也敢说？" '
-     '紧接着他再也忍不住，放声狂笑，"哈哈哈哈——我的天，我要笑死了，喘不上气了！"'),
-    ("深夜电台·治愈低语", str(_VOICES_DIR / "male_old_movie.wav"),
-     '一个低沉磁性的男声，慢悠悠地、像贴着耳边轻语，"夜深了，还没睡的朋友，这首歌，送给此刻有心事的你。" '
-     '他顿了顿，声音愈发温柔，"别撑着了……今晚，好好睡一觉吧。"'),
-    ("热血少年·绝地觉醒", str(_VOICES_DIR / "male_arnie.mp3"),
-     '一个少年的声音起初还在发颤、带着哭腔，"我……我真的做得到吗？" '
-     '忽然像是下定了决心，声音一字一句地坚定起来，最后嘶吼出声，"够了！这一次——我绝不再逃！"'),
-    ("醉酒老爸·深夜倾诉", str(_VOICES_DIR / "male_petergriffin.wav"),
-     '一个中年男人喝多了，舌头有些打结、声音疲惫又哽咽，"儿子啊……爸这辈子没本事，让你跟着受委屈了。" '
-     '他重重地叹了口气，"你可……一定要比爸强啊。"'),
-    ("宫斗娘娘·笑里藏刀", str(_VOICES_DIR / "female_shadowheart.wav"),
-     '一个女人柔声细语、语气温婉得体，"妹妹这身衣裳，真是好看。" '
-     '话锋陡然一转，声音里渗出阴冷的笑意，"只可惜啊……怕是没机会再穿第二回了。"'),
-    ("甜妹撒娇·黏人精（女声）", str(_VOICES_DIR / "female_american.wav"),
-     '一个年轻女人嗲声嗲气、尾音软软地往上勾，"哎呀人家不管啦～你今天答应过要陪我的嘛！" '
-     '她故意把声音拖得长长的撒娇，"就去嘛就去嘛，好不好嘛～"'),
+     'He chuckles darkly, "Hahaha." He lets the silence stretch. His voice drops to a lethal murmur, '
+     '"年轻人……是谁给你的胆子。"'),
+    ("暴怒训斥·拍案而起", str(_VOICES_DIR / "male_furious.wav"),
+     'A man speaks through clenched teeth, barely containing his fury, each word deliberate and crushing, '
+     '"我，再问你，最后一遍——东西在哪儿。" '
+     'His restraint snaps. His voice detonates into a full-throated roar, '
+     '"别逼我亲自动手！"'),
+    ("脱口秀·笑到窒息", str(_VOICES_DIR / "male_comedian.wav"),
+     'A stand-up comedian gasps in theatrical disbelief, his voice shooting up, '
+     '"不是吧！这话你也敢说？！" '
+     'He erupts into helpless laughter, "Hahaha, hahaha." '
+     'He wheezes, struggling for air, "我的天，我要笑死了，喘不上气了！" '
+     'He breaks down again, "Hahaha."'),
+    ("深夜电台·治愈低语", str(_VOICES_DIR / "male_deep_warm.wav"),
+     'A deep, warm male voice speaks into the mic, slow and unhurried, as if murmuring directly against the ear, '
+     '"夜深了，还没睡的朋友，这首歌，送给此刻有心事的你。" '
+     'A long pause. His voice softens even further, dropping to a tender whisper, '
+     '"别撑着了……今晚，好好睡一觉吧。"'),
+    ("热血少年·绝地觉醒", str(_VOICES_DIR / "male_young.wav"),
+     'A young man\'s voice trembles, on the verge of tears, fragile and breaking, '
+     '"我……我真的做得到吗？" '
+     'A long pause. His breathing steadies. His voice hardens with sudden, fierce resolve, '
+     'each word landing like a blow, "够了！这一次——我绝不再逃！" '
+     'He shouts the last line, his voice cracking with raw conviction.'),
+    ("醉酒老爸·深夜倾诉", str(_VOICES_DIR / "male_weathered.wav"),
+     'A middle-aged man slurs his words, his voice thick with alcohol and exhaustion, heavy with guilt, '
+     '"儿子啊……爸这辈子没本事，让你跟着受委屈了。" '
+     'He sighs deeply. A long pause. He speaks quieter now, his voice cracking, barely holding back tears, '
+     '"你可……一定要比爸强啊。"'),
+    ("宫斗娘娘·笑里藏刀", str(_VOICES_DIR / "female_refined.wav"),
+     'A woman speaks in a silken voice, graceful and perfectly poised, dripping with honeyed insincerity, '
+     '"妹妹这身衣裳，真是好看。" '
+     'She lets out a soft, cold laugh, "Hehehe." '
+     'Her voice drops to an icy whisper, venom wrapped in velvet, '
+     '"只可惜啊……怕是没机会再穿第二回了。"'),
+    ("甜妹撒娇·黏人精", str(_VOICES_DIR / "female_sweet.wav"),
+     'A young woman speaks in a bright, singsong voice, her tone lifting into a playful whine, '
+     'every sentence curling upward, "哎呀人家不管啦～你今天答应过要陪我的嘛！" '
+     'She giggles, "Hehehe." She drags her words out in an exaggerated, pouty drawl, '
+     '"就去嘛就去嘛，好不好嘛～"'),
 ]
 
 
@@ -531,7 +549,164 @@ with gr.Blocks(
                         placeholder='A woman speaks warmly, "Hello, how are you today?" '
                                     'She laughs, "Hahaha, it is so good to see you!"',
                         lines=6,
+                        elem_id="prompt_box",
                     )
+                    gr.HTML("""
+<img src="x" style="display:none" onerror="
+window._cu=function(t){
+  var ta=document.querySelector('#prompt_box textarea')||document.querySelector('#prompt_box input');
+  if(!ta)return;
+  var p=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+  var b=ta.value.slice(0,p),a=ta.value.slice(p);
+  var s=(p>0&&ta.value[p-1]!==' '&&ta.value[p-1]!=='\\n')?' ':'';
+  var nv=b+s+t+a;
+  var st=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set;
+  st.call(ta,nv);
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
+  var np=p+s.length+t.length;
+  ta.selectionStart=ta.selectionEnd=np;
+  ta.focus();
+};
+window._qw=function(){
+  var ta=document.querySelector('#prompt_box textarea')||document.querySelector('#prompt_box input');
+  if(!ta)return;
+  var p0=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+  var p1=ta.selectionEnd!=null?ta.selectionEnd:p0;
+  if(p0!==p1){
+    var sel=ta.value.slice(p0,p1);
+    var nv=ta.value.slice(0,p0)+'\\u201c'+sel+'\\u201d'+ta.value.slice(p1);
+  }else{
+    var nv=ta.value.slice(0,p0)+'\\u201c\\u201d'+ta.value.slice(p0);
+  }
+  var st=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set;
+  st.call(ta,nv);
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
+  if(p0!==p1){
+    ta.selectionStart=ta.selectionEnd=p0+2+sel.length;
+  }else{
+    ta.selectionStart=ta.selectionEnd=p0+1;
+  }
+  ta.focus();
+};
+">
+<!-- 说话人标签 -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+  <span style="color:var(--txt-dim);font-size:12.5px;font-weight:600;letter-spacing:.03em;margin-right:4px;">🎤 说话人:</span>
+  <span class="cue-tag" onclick="window._cu('A young woman speaks warmly, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">温柔女声</span>
+  <span class="cue-tag" onclick="window._cu('A deep, authoritative man speaks coldly, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">霸气男声</span>
+  <span class="cue-tag" onclick="window._cu('A young man speaks with fierce energy, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">少年热血</span>
+  <span class="cue-tag" onclick="window._cu('A refined woman speaks in a silken voice, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">御姐冷艳</span>
+  <span class="cue-tag" onclick="window._cu('A middle-aged man speaks in a gravelly voice, raspy and weary, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">沧桑大叔</span>
+  <span class="cue-tag" onclick="window._cu('A playful young woman speaks in a bright, singsong voice, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">甜妹撒娇</span>
+  <span class="cue-tag" onclick="window._cu('A deep, warm male voice speaks gently, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">低沉男声</span>
+  <span class="cue-tag" onclick="window._cu('A menacing figure speaks in a low, cold voice, ')" style="
+    background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line);
+    border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;user-select:none;
+    white-space:nowrap;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='var(--gold-soft)';this.style.color='var(--gold)'">阴冷反派</span>
+</div>
+<!-- 音效插入行 -->
+<div id="cue_insert_row" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:10px 14px;">
+  <select id="cue_selector" style="flex:2;background:var(--surface-2);color:var(--txt);
+    border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;
+    font-size:13px;font-family:inherit;cursor:pointer;outline:none;
+    transition:border-color .18s ease;"
+    onfocus="this.style.borderColor='var(--gold-line)'"
+    onblur="this.style.borderColor='var(--line)'"
+    onkeydown="if(event.key==='Enter'){event.preventDefault();window._cu(this.value)}">
+    <optgroup label="── 情绪动作 ──">
+      <option value="She sighs deeply. ">叹息 — She sighs deeply.</option>
+      <option value="He gasps. ">倒吸凉气 — He gasps.</option>
+      <option value="He wheezes, struggling for air. ">喘不上气 — He wheezes, struggling for air.</option>
+      <option value="She groans. ">呻吟/烦闷 — She groans.</option>
+      <option value="She breathes deeply. ">深呼吸 — She breathes deeply.</option>
+      <option value="He sniffles. ">抽鼻子 — He sniffles.</option>
+      <option value='"Hahaha." '>大笑 — "Hahaha."</option>
+      <option value='"Hehehe." '>轻笑/咯咯笑 — "Hehehe."</option>
+    </optgroup>
+    <optgroup label="── 停顿节奏 ──">
+      <option value="A long pause. ">长停顿 — A long pause.</option>
+      <option value="He clears his throat. ">清嗓子 — He clears his throat.</option>
+      <option value="He gulps nervously. ">紧张咽口水 — He gulps nervously.</option>
+      <option value="He coughs. ">咳嗽 — He coughs.</option>
+      <option value="He yawns. ">打哈欠 — He yawns.</option>
+    </optgroup>
+    <optgroup label="── 嗓音变化 ──">
+      <option value="She drops to a whisper. ">耳语/低语 — She drops to a whisper.</option>
+      <option value="He mutters. ">嘀咕 — He mutters.</option>
+      <option value="He mumbles. ">含含糊糊 — He mumbles.</option>
+      <option value="His voice trembles. ">嗓音颤抖 — His voice trembles.</option>
+      <option value="His voice cracks. ">破音/哽咽 — His voice cracks.</option>
+    </optgroup>
+  </select>
+  <button style="flex:0 0 auto;background:linear-gradient(180deg,var(--gold-2),var(--gold));
+    color:#1A1509;font-weight:700;border:none;border-radius:var(--r-sm);padding:9px 18px;
+    font-size:13px;letter-spacing:.02em;cursor:pointer;
+    box-shadow:0 2px 10px rgba(201,162,75,.18);
+    transition:filter .18s ease,transform .12s ease;"
+    onmouseover="this.style.filter='brightness(1.08)'"
+    onmouseout="this.style.filter='none'"
+    onmousedown="this.style.transform='translateY(0)'"
+    onmouseup="this.style.transform='translateY(-1px)'"
+    onclick="window._cu(document.getElementById('cue_selector').value)">
+    + 插入到光标</button>
+  <button style="flex:0 0 auto;background:transparent;color:var(--gold);
+    border:1px solid var(--gold-line);border-radius:var(--r-sm);padding:9px 16px;
+    font-size:13px;font-weight:700;cursor:pointer;
+    transition:background .18s,color .18s;"
+    onmouseover="this.style.background='var(--gold)';this.style.color='#1A1509'"
+    onmouseout="this.style.background='transparent';this.style.color='var(--gold)'"
+    onclick="window._qw()">
+    「」→ \" \"
+  </button>
+</div>
+""")
                     with gr.Row():
                         quick_voice = gr.Dropdown(
                             label="选择已保存音色（选中会载入下方，可试听）",

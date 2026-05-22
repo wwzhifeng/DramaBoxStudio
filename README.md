@@ -31,7 +31,7 @@ A community distribution of **Resemble AI's DramaBox** — expressive, prompt-dr
 
 ## Demo
 
-![Demo Video](assets/demo.gif)
+<video src="https://github.com/wwzhifeng/DramaBoxStudio/raw/master/assets/demo.mp4" controls width="100%"></video>
 
 ---
 

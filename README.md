@@ -47,19 +47,49 @@ Unzip, double-click `DramaBoxStudio.bat`, open `http://localhost:7860`.
 
 ### Option 2: Run from Source
 
+**Requirements**
+
+- Python 3.10 – 3.13
+- Git
+- ~25 GB free disk space (for model weights)
+- Internet connection (first run only — downloads model weights)
+
+**Step 1: Clone**
+
 ```bash
-# 1. Clone
 git clone https://github.com/wangzhifeng/DramaBoxStudio.git
 cd DramaBoxStudio
+```
 
-# 2. Install dependencies
+**Step 2: Install PyTorch with CUDA**
+
+```bash
+pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
+```
+
+Pick the CUDA version matching your driver. Check with `nvidia-smi` (top-right corner).
+
+| NVIDIA driver | CUDA version | pip index |
+|---|---|---|
+| >= 572.00 | CUDA 12.8 | `cu128` |
+| >= 550.00 | CUDA 12.4 | `cu124` |
+| >= 545.00 | CUDA 12.1 | `cu121` |
+
+**Step 3: Install remaining dependencies**
+
+```bash
 pip install -r requirements.txt
+```
 
-# 3. Launch (models auto-download on first run)
+**Step 4: Launch**
+
+```bash
 python app.py
 ```
 
-First launch downloads ~16 GB of model weights from HuggingFace. Subsequent launches load instantly.
+Open `http://localhost:7860` in your browser.
+
+> First launch downloads ~16 GB of model weights from HuggingFace. This may take 10–30 minutes depending on your network. Subsequent launches load in ~10 seconds.
 
 ---
 

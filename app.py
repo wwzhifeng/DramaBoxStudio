@@ -42,98 +42,253 @@ log.info("模型就绪。")
 # ══════════════════════════════════════════════════
 
 CSS = """
+/* ═══════════════════════════════════════════════════
+   DramaBox Studio · 暗夜鎏金 (Midnight Gold)
+   纯外观样式 — 不含任何布局/定位/遮罩/flex容器规则
+   ═══════════════════════════════════════════════════ */
+:root {
+    --bg:        #0E0E10;
+    --surface:   #16161A;
+    --surface-2: #1C1C21;
+    --line:      rgba(255,255,255,.065);
+    --line-2:    rgba(255,255,255,.11);
+    --txt:       #EDEBE4;
+    --txt-dim:   #9C9A90;
+    --txt-mute:  #66645C;
+    --gold:      #C9A24B;
+    --gold-2:    #E2C277;
+    --gold-soft: rgba(201,162,75,.10);
+    --gold-line: rgba(201,162,75,.30);
+    --r:    16px;
+    --r-sm: 10px;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 34px rgba(0,0,0,.30);
+}
+
 /* ── 全局基调 ── */
 body, .gradio-container {
-    background: #0b0b14 !important;
-    color: #e0e0e8 !important;
-    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif !important;
+    background: var(--bg) !important;
+    color: var(--txt) !important;
+    font-family: "Inter", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif !important;
+    letter-spacing: .005em !important;
 }
-.gradio-container { max-width: 1200px !important; margin: 0 auto !important; }
+/* 默认就放大到 125%（等价于浏览器缩放 125%）；加在 body 上避免横向溢出 */
+body { zoom: 1.25; }
+/* 全宽利用 16:9 屏，超宽屏封顶；紧凑垂直间距以求接近一屏 */
+.gradio-container {
+    max-width: 1680px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 12px 30px 8px !important;
+}
 
-/* ── Tab 栏 ── */
+/* ── 卡片：组件块统一面板 ── */
+.block, .form {
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: var(--r) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+/* ── Tab 栏：杂志感金色下划线 ── */
+.tabs > .tab-nav {
+    border-bottom: 1px solid var(--line) !important;
+    margin-bottom: 16px !important; gap: 2px !important;
+}
 .tabs > .tab-nav > button {
-    background: #111122 !important; color: #888 !important;
-    border: 1px solid #1a1a30 !important; border-radius: 10px 10px 0 0 !important;
-    font-size: 15px !important; padding: 12px 32px !important; margin-right: 4px !important;
-    font-weight: 600 !important; transition: all .2s !important;
+    background: transparent !important; color: var(--txt-dim) !important;
+    border: none !important; border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important; margin: 0 !important;
+    font-size: 15px !important; font-weight: 600 !important;
+    padding: 13px 26px !important;
+    transition: color .2s ease, border-color .2s ease !important;
 }
+.tabs > .tab-nav > button:hover { color: var(--txt) !important; }
 .tabs > .tab-nav > button.selected {
-    background: #1a1a2e !important; color: #f59e0b !important;
-    border-color: #f59e0b40 !important; border-bottom-color: transparent !important;
-    box-shadow: 0 -2px 12px #f59e0b20 !important;
+    color: var(--gold) !important;
+    border-bottom-color: var(--gold) !important;
 }
 
-/* ── 卡片 ── */
-.card, .gr-box, .gr-form, .panel {
-    background: #12121f !important; border: 1px solid #1f1f35 !important;
-    border-radius: 14px !important; box-shadow: 0 4px 24px #00000040 !important;
-    padding: 20px !important; margin-bottom: 16px !important;
+/* ── 输入框 / 文本域 / 数字 ── */
+textarea, input[type="text"], input[type="number"],
+.gradio-container input[type="text"], .gradio-container textarea {
+    background: var(--surface-2) !important; color: var(--txt) !important;
+    border: 1px solid var(--line) !important; border-radius: var(--r-sm) !important;
+    font-size: 14px !important; line-height: 1.6 !important;
+    transition: border-color .2s ease, background .2s ease !important;
+}
+textarea::placeholder, input::placeholder { color: var(--txt-mute) !important; }
+textarea:focus, input:focus {
+    border-color: var(--gold-line) !important; background: #202024 !important;
+    outline: none !important;
 }
 
-/* ── 输入框 ── */
-textarea, input[type="text"], input[type="number"], .wrap .scroll-hide {
-    background: #0d0d18 !important; color: #e0e0e8 !important;
-    border: 1px solid #232340 !important; border-radius: 10px !important;
-    font-size: 14px !important; padding: 12px !important;
-}
-textarea:focus, input:focus { border-color: #f59e0b60 !important; box-shadow: 0 0 12px #f59e0b18 !important; }
-
-/* ── 按钮 ── */
+/* ── 主按钮：鎏金 ── */
 button.primary, .gr-button-primary {
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-    color: #0b0b14 !important; font-weight: 700 !important;
-    border: none !important; border-radius: 10px !important;
-    font-size: 15px !important; padding: 12px 28px !important;
-    box-shadow: 0 4px 16px #f59e0b30 !important; transition: all .2s !important;
+    background: linear-gradient(180deg, var(--gold-2), var(--gold)) !important;
+    color: #1A1509 !important; font-weight: 700 !important;
+    border: none !important; border-radius: var(--r-sm) !important;
+    font-size: 15px !important; letter-spacing: .02em !important;
+    box-shadow: 0 2px 10px rgba(201,162,75,.18) !important;
+    transition: filter .18s ease, transform .12s ease !important;
 }
-button.primary:hover, .gr-button-primary:hover {
-    transform: translateY(-1px); box-shadow: 0 6px 24px #f59e0b50 !important;
-}
+button.primary:hover, .gr-button-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+button.primary:active { transform: translateY(0); }
+
+/* ── 次按钮：描边幽灵 ── */
 button.secondary, .gr-button-secondary {
-    background: #1a1a2e !important; color: #ccc !important;
-    border: 1px solid #2a2a40 !important; border-radius: 10px !important;
-    font-size: 14px !important; padding: 10px 20px !important;
+    background: transparent !important; color: var(--txt-dim) !important;
+    border: 1px solid var(--line-2) !important; border-radius: var(--r-sm) !important;
+    font-size: 14px !important; font-weight: 600 !important;
+    transition: color .18s ease, border-color .18s ease !important;
+}
+button.secondary:hover, .gr-button-secondary:hover {
+    color: var(--gold-2) !important; border-color: var(--gold-line) !important;
 }
 
-/* ── 标签 / 徽标 ── */
-label, .label-text { color: #aaa !important; font-size: 13px !important; font-weight: 600 !important; }
+/* ── 标签：全部去掉橙色填充，统一成低调暗色文字 ── */
+.gradio-container {
+    --block-label-background-fill: transparent !important;
+    --block-label-text-color: var(--txt-dim) !important;
+    --block-label-border-color: transparent !important;
+    --block-title-text-color: var(--txt-dim) !important;
+    --block-info-text-color: var(--txt-mute) !important;
+}
+label, label span, .label-text,
+.block label, .block label span,
+.block-label, span.block-label, .block .block-label, [class*="block_label"] {
+    background: transparent !important;
+    color: var(--txt-dim) !important;
+    border: none !important; box-shadow: none !important;
+    font-size: 12.5px !important; font-weight: 600 !important;
+    letter-spacing: .03em !important;
+}
+.block-label svg, .block-label .icon, label svg { color: var(--gold) !important; opacity: .8; }
+
+/* ── 徽标 ── */
 .badge {
-    display: inline-block; background: #f59e0b18; color: #f59e0b;
-    border: 1px solid #f59e0b30; border-radius: 6px;
-    padding: 4px 12px; font-size: 12px; font-weight: 700; margin-right: 6px;
+    display: inline-block; background: var(--gold-soft); color: var(--gold);
+    border: 1px solid var(--gold-line); border-radius: 999px;
+    padding: 3px 13px; font-size: 11.5px; font-weight: 700;
 }
 
 /* ── Banner ── */
 .studio-banner {
-    background: linear-gradient(135deg, #1a1030 0%, #0f1a2e 50%, #101a20 100%);
-    border: 1px solid #232340; border-left: 4px solid #f59e0b;
-    border-radius: 14px; padding: 18px 24px; margin-bottom: 20px;
-    color: #d0d0e0; font-size: 13px; line-height: 1.6;
-    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(120deg, #1A1712 0%, var(--surface) 55%) !important;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--gold);
+    border-radius: var(--r); padding: 18px 28px; margin-bottom: 32px;
+    display: flex; align-items: center; gap: 18px;
+    box-shadow: var(--shadow);
 }
-.studio-banner .logo-text { font-size: 22px; font-weight: 800; color: #f59e0b; }
-.studio-banner .sub { color: #888; font-size: 12px; }
+.studio-banner .brand-mark {
+    font-size: 30px; line-height: 1;
+    width: 58px; height: 58px; flex: 0 0 58px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--gold-soft); border: 1px solid var(--gold-line);
+    border-radius: 14px;
+}
+.studio-banner .logo-text {
+    font-size: 26px; font-weight: 800; color: var(--txt);
+    letter-spacing: .01em; margin-bottom: 4px;
+}
+.studio-banner .logo-text .accent { color: var(--gold); }
+.studio-banner .sub { color: var(--txt-mute); font-size: 13px; letter-spacing: .04em; }
 
-/* ── Audio 组件 ── */
-.audio-controls { background: #0d0d18 !important; border-radius: 10px !important; }
+/* ── Markdown 说明文字 ── */
+.prose, .prose p, .md { color: var(--txt-dim) !important; font-size: 13.5px !important; line-height: 1.75 !important; }
+.prose strong, .md strong { color: var(--txt) !important; }
+.prose code, .md code {
+    background: var(--surface-2) !important; color: var(--gold-2) !important;
+    border: 1px solid var(--line) !important; border-radius: 5px !important;
+    padding: 1px 7px !important; font-size: 12.5px !important;
+}
 
-/* ── DataFrame ── */
-.gr-dataframe { font-size: 13px !important; }
-.gr-dataframe th { background: #1a1a2e !important; color: #f59e0b !important; }
-.gr-dataframe td { background: #12121f !important; color: #ccc !important; }
+/* ── DataFrame（仅配色，不动结构） ── */
+.gr-dataframe table th, table thead th {
+    background: var(--surface-2) !important; color: var(--gold) !important;
+    font-weight: 700 !important; letter-spacing: .03em !important;
+    border-color: var(--line) !important;
+}
+.gr-dataframe table td, table tbody td {
+    color: var(--txt-dim) !important; border-color: var(--line) !important;
+}
 
 /* ── 滑块 ── */
-.gr-slider input[type="range"] { accent-color: #f59e0b; }
+input[type="range"] { accent-color: var(--gold) !important; }
 
 /* ── Accordion ── */
-.gr-accordion { background: #12121f !important; border: 1px solid #1f1f35 !important; border-radius: 14px !important; }
+.label-wrap > span { color: var(--txt) !important; font-weight: 600 !important; }
 
 /* ── 进度条 ── */
-.gr-progress .progress-bar { background: #f59e0b !important; }
+.progress-bar, .gr-progress .progress-bar { background: var(--gold) !important; }
+
+/* ── Examples（胶囊标签） ── */
+.gr-samples-table td, .examples td {
+    background: var(--surface-2) !important; color: var(--txt-dim) !important;
+    border: 1px solid var(--line) !important; border-radius: 999px !important;
+    transition: color .18s ease, border-color .18s ease !important;
+}
+.gr-samples-table td:hover, .examples td:hover {
+    color: var(--gold) !important; border-color: var(--gold-line) !important;
+}
+
+/* ── 滚动条 ── */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--bg); }
+*::-webkit-scrollbar-thumb { background: #2B2B30; border-radius: 999px; border: 2px solid var(--bg); }
+*::-webkit-scrollbar-thumb:hover { background: #3A3A40; }
 
 /* ── 底部 ── */
 footer { visibility: hidden; }
+
+/* ── 自定义页脚（署名 + 链接） ── */
+.studio-footer {
+    margin-top: 30px; padding: 18px 28px;
+    background: linear-gradient(120deg, var(--surface) 60%, #1A1712 100%);
+    border: 1px solid var(--line); border-top: 2px solid var(--gold);
+    border-radius: var(--r); box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+}
+.studio-footer .ft-left { color: var(--txt-dim); font-size: 13px; letter-spacing: .05em; }
+.studio-footer .ft-name {
+    color: var(--gold); font-weight: 800; font-size: 15px;
+    letter-spacing: .08em; margin-left: 4px;
+}
+.studio-footer .ft-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.studio-footer .ft-links a {
+    color: var(--txt-dim); text-decoration: none;
+    font-size: 13px; font-weight: 600; letter-spacing: .03em;
+    padding: 9px 20px; border-radius: 999px;
+    border: 1px solid var(--line-2);
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.studio-footer .ft-links a:hover {
+    color: #1A1509; background: var(--gold); border-color: var(--gold);
+}
 """
+
+
+# ── 本地内嵌 Inter 字体（自包含 / 离线 / 不依赖外网或系统字体） ──
+def _build_font_css() -> str:
+    """读取 assets/fonts 下的 Inter woff2，base64 内嵌为 @font-face。
+    随包分发，离线可用；用 data URI 而非文件路径，避免任何机器上的路径/服务问题。"""
+    import base64
+    font_dir = APP_DIR / "assets" / "fonts"
+    faces = []
+    for weight in (400, 600, 700, 800):
+        fp = font_dir / f"inter-latin-{weight}-normal.woff2"
+        if not fp.exists():
+            continue
+        b64 = base64.b64encode(fp.read_bytes()).decode("ascii")
+        faces.append(
+            "@font-face{font-family:'Inter';font-style:normal;font-weight:%d;"
+            "font-display:swap;src:url(data:font/woff2;base64,%s) format('woff2')}" % (weight, b64)
+        )
+    return "\n".join(faces)
+
+
+CSS = _build_font_css() + "\n" + CSS
 
 # ── 预设示例 ─────────────────────────────────────────
 _VOICES_DIR = APP_DIR / "assets" / "voices"
@@ -261,9 +416,10 @@ with gr.Blocks(
     title="DramaBox Studio — AI 配音工作室",
     theme=gr.themes.Soft(
         primary_hue="amber",
-        secondary_hue="slate",
-        neutral_hue="slate",
-        font=gr.themes.GoogleFont("Inter"),
+        secondary_hue="gray",
+        neutral_hue="gray",
+        font=gr.themes.Font("Inter"),
+        font_mono=gr.themes.Font("ui-monospace"),
     ),
     css=CSS,
     analytics_enabled=False,
@@ -272,8 +428,11 @@ with gr.Blocks(
     # ── Header ──
     gr.HTML(
         '<div class="studio-banner">'
-        '<div><span class="logo-text">🎭 DramaBox Studio</span><br>'
-        '<span class="sub">基于 LTX-2.3 · Resemble AI DramaBox · 纯本地 AI 配音</span></div>'
+        '<div class="brand-mark">🎭</div>'
+        '<div class="brand-text">'
+        '<div class="logo-text">DramaBox <span class="accent">Studio</span></div>'
+        '<div class="sub">基于 LTX-2.3 · Resemble AI DramaBox · 纯本地 AI 配音工作室</div>'
+        '</div>'
         '</div>'
     )
 
@@ -332,7 +491,7 @@ with gr.Blocks(
                 outputs=[audio_out],
                 fn=lambda _n, prompt, ref, cfg, stg, dur, gd, rd, sd: on_generate(
                     prompt, ref, cfg, stg, dur, gd, rd, sd),
-                cache_examples=False, run_on_click=True, examples_per_page=20,
+                cache_examples=False, run_on_click=False, examples_per_page=20,
             )
 
         # ══════════════════════════════════════════
@@ -352,16 +511,12 @@ with gr.Blocks(
                 with gr.Column(scale=3):
                     voice_table = gr.Dataframe(
                         headers=["名称", "时长", "创建时间"],
+                        datatype=["str", "str", "str"],
+                        col_count=(3, "fixed"),
                         label="已保存的音色",
-                        value=[],
+                        value=refresh_voice_table(),
                         interactive=False,
                     )
-
-            # 更新初始音色列表
-            initial_voices = list_voices()
-            if initial_voices:
-                voice_table.value = [[v["name"], f'{v["duration_seconds"]:.1f}s', v["created_at"]]
-                                     for v in initial_voices]
 
             save_btn.click(on_save_voice, inputs=[voice_name, voice_audio],
                           outputs=[voice_table])
@@ -420,6 +575,17 @@ with gr.Blocks(
                 inputs=[parsed_state] + voice_drops,
                 outputs=[dialogue_out],
             )
+
+    # ── Footer ──
+    gr.HTML(
+        '<div class="studio-footer">'
+        '<div class="ft-left">整合包制作 ·<span class="ft-name">王知风</span></div>'
+        '<div class="ft-links">'
+        '<a href="https://wangzhifeng.vip/" target="_blank" rel="noopener">更多 AI 工具</a>'
+        '<a href="https://wangzhifeng.vip/" target="_blank" rel="noopener">详细教程</a>'
+        '</div>'
+        '</div>'
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("GRADIO_SERVER_PORT", str(GRADIO_PORT)))

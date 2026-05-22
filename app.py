@@ -12,6 +12,37 @@ APP_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_DIR))
 sys.path.insert(0, str(APP_DIR / "src"))
 
+# ── 环境检查 ────────────────────────────────────
+
+def _check_environment():
+    """启动前检查，中文路径和 GPU 驱动问题直接报错退出。"""
+    cwd = str(APP_DIR)
+    non_ascii = [c for c in cwd if ord(c) > 127]
+    if non_ascii:
+        print("\n" + "=" * 50)
+        print("[ERROR] Path contains non-English characters!")
+        print(f"Current: {cwd}")
+        print("CUDA / PyTorch do NOT support paths with Chinese characters.")
+        print("Please move this folder to a path with English letters only.")
+        print(f"Example: D:\\Tools\\DramaBoxStudio\\")
+        print("=" * 50 + "\n")
+        sys.exit(1)
+
+    import subprocess
+    try:
+        subprocess.run(["nvidia-smi"], capture_output=True, check=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        print("\n" + "=" * 50)
+        print("[ERROR] NVIDIA graphics driver not detected!")
+        print("DramaBox requires an NVIDIA GPU with CUDA drivers.")
+        print("Please install drivers: https://www.nvidia.com/download/")
+        print("=" * 50 + "\n")
+        sys.exit(1)
+
+_check_environment()
+# 检查通过才能走到这里
+print("Environment checks passed: path OK, GPU OK")
+
 from inference_server import TTSServer
 from config import (GRADIO_PORT, DIT_CHECKPOINT, AUDIO_COMPONENTS, GEMMA_DIR,
                     OUTPUT_DIR, VOICES_DIR, CFG_SCALE, STG_SCALE, STEPS, SEED)

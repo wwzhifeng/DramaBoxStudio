@@ -96,7 +96,7 @@ class TTSServer:
         self.patchifier = AudioPatchifier(patch_size=1)
         self._low_vram = low_vram
         # <10G 显存：encode 时连 DiT 也搬到 CPU，否则 Gemma+DiT+VAE 超 8G
-        self._ultra_low = low_vram and torch.cuda.get_device_properties(0).total_mem < 10 * 1024**3
+        self._ultra_low = low_vram and torch.cuda.get_device_properties(0).total_memory < 10 * 1024**3
 
         self._prompt_encoder = None
         self._velocity_model = None
@@ -201,22 +201,30 @@ class TTSServer:
         """将 Gemma 搬回 CPU RAM。超低显存时先把 DiT 搬回 GPU。"""
         pe = self._prompt_encoder
         if pe is not None and hasattr(pe, '_warm_text_encoder') and pe._warm_text_encoder is not None:
+            t0 = time.time()
             pe._warm_text_encoder.to('cpu')
             torch.cuda.empty_cache()
+            msg = f"Gemma → CPU: {time.time() - t0:.1f}s"
             if self._ultra_low:
+                t0 = time.time()
                 self._velocity_model.to(self.device)
                 self._audio_decoder.to(self.device)
-            log.info(f"Gemma → CPU, GPU 显存: {torch.cuda.memory_allocated(self.device) / 1e9:.1f}GB")
+                msg += f", DiT+VAE → GPU: {time.time() - t0:.1f}s"
+            log.info(f"{msg}, GPU 显存: {torch.cuda.memory_allocated(self.device) / 1e9:.1f}GB")
 
     def _gemma_to_gpu(self) -> None:
         """将 Gemma 搬回 GPU 用于编码。超低显存时先把 DiT 卸到 CPU。"""
         if self._ultra_low:
+            t0 = time.time()
             self._velocity_model.to('cpu')
             self._audio_decoder.to('cpu')
             torch.cuda.empty_cache()
+            log.info(f"DiT+VAE → CPU (腾显存给 Gemma): {time.time() - t0:.1f}s")
         pe = self._prompt_encoder
         if pe is not None and hasattr(pe, '_warm_text_encoder') and pe._warm_text_encoder is not None:
+            t0 = time.time()
             pe._warm_text_encoder.to(self.device)
+            log.info(f"Gemma → GPU: {time.time() - t0:.1f}s")
 
     # ── 生成 ──────────────────────────────────────
 

@@ -3,6 +3,21 @@ __pycache__/
 *.pyo
 *.egg-info/
 .cache/
-models/*.safetensors
-*.log
 .DS_Store
+*.log
+
+# Model weights (downloaded from HuggingFace on first run)
+models/
+
+# Embedded Python (integration package only)
+WZF312/
+
+# Generated audio outputs
+output/*.wav
+output/*.mp3
+
+# Local dev / packaging
+tmp/
+打包不带/
+音频文件/
+TODO*.md

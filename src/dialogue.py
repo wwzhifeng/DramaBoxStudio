@@ -14,6 +14,30 @@ log = logging.getLogger(__name__)
 
 _LINE_RE = re.compile(r"^(.+?)[：:]\s*(.+)$")
 
+# ── 情感预设：中文标签（UI 显示）→ 英文导演指令（喂模型）──────────
+# 模型(DramaBox)情感表演用英文自然语言效果最好，故指令走英文；UI 标签保持中文。
+# 想调某个情绪的强弱/效果，只改右边这句英文即可（生成后用耳朵听着调）。
+EMOTION_PRESETS: dict[str, str] = {
+    "正常": "The speaker says",
+    "开心": "The speaker says cheerfully, in a warm and happy tone",
+    "兴奋": "The speaker says with great excitement and energy",
+    "愤怒": "The speaker shouts angrily, with rage and force",
+    "悲伤": "The speaker says sadly, voice heavy with grief",
+    "恐惧": "The speaker says fearfully, voice tense and trembling",
+    "温柔": "The speaker says gently and tenderly",
+    "深情": "The speaker says with deep, heartfelt affection",
+    "惊讶": "The speaker says with shock and disbelief",
+    "大笑": "The speaker laughs heartily while speaking",
+    "冷漠": "The speaker says coldly and flatly, with detached indifference",
+    "讽刺": "The speaker says with mocking, biting sarcasm",
+    "严肃": "The speaker says in a grave, stern, serious tone",
+    "疲惫": "The speaker says wearily, sounding drained and exhausted",
+    "撒娇": "The speaker says in a sweet, playful, pouty tone, dragging out the words coyly",
+    "命令": "The speaker says forcefully, in a sharp commanding tone",
+}
+# 供 UI 下拉使用的标签列表（中文）
+EMOTION_LABELS: list[str] = list(EMOTION_PRESETS.keys())
+
 
 def parse_script(text: str) -> list[dict]:
     """解析剧本，返回 [{character, line}, ...]。
@@ -80,9 +104,12 @@ def generate_dialogue(
     for i, item in enumerate(lines):
         char = item["character"]
         line = item["line"]
+        emotion = item.get("emotion") or "正常"
         ref = voice_map.get(char) if char else None
 
-        prompt = f'{char} says, "{line}"' if char else line
+        # 官方格式：英文导演指令在引号外（不会被念出），中文台词在双引号内（原样念）
+        directive = EMOTION_PRESETS.get(emotion, EMOTION_PRESETS["正常"])
+        prompt = f'{directive}, "{line}"'
 
         log.info(f"[{i+1}/{total}] {char}: {line[:40]}...")
         if progress_cb:

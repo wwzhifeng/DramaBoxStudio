@@ -16,7 +16,10 @@ from inference_server import TTSServer
 from config import (GRADIO_PORT, DIT_CHECKPOINT, AUDIO_COMPONENTS, GEMMA_DIR,
                     OUTPUT_DIR, VOICES_DIR, CFG_SCALE, STG_SCALE, STEPS, SEED)
 from voice_library import list_voices, save_voice, delete_voice
-from dialogue import parse_script
+from dialogue import parse_script, EMOTION_LABELS
+
+# 逐句情感：UI 最多为前 N 句提供情感选择器（超出按"正常"生成）
+MAX_EMOTION_LINES = 30
 
 import gradio as gr
 
@@ -145,24 +148,25 @@ button.secondary:hover, .gr-button-secondary:hover {
     color: var(--gold-2) !important; border-color: var(--gold-line) !important;
 }
 
-/* ── 标签：全部去掉橙色填充，统一成低调暗色文字 ── */
+/* ── 标签：暗底 + 浅字（主要靠上面的 theme.set()，这里做兜底）── */
 .gradio-container {
-    --block-label-background-fill: transparent !important;
-    --block-label-text-color: var(--txt-dim) !important;
-    --block-label-border-color: transparent !important;
-    --block-title-text-color: var(--txt-dim) !important;
+    --block-label-background-fill: #1C1C21 !important;
+    --block-label-text-color: #D2CFC6 !important;
+    --block-label-border-color: #2A2A30 !important;
+    /* 组件标题(角色/音色/台词等标签) = 按钮同款哑光金 + 深字（这才是橙色的真正来源） */
+    --block-title-background-fill: #C9A24B !important;
+    --block-title-text-color: #1A1509 !important;
+    --block-title-border-color: #C9A24B !important;
     --block-info-text-color: var(--txt-mute) !important;
 }
-label, label span, .label-text,
-.block label, .block label span,
-.block-label, span.block-label, .block .block-label, [class*="block_label"] {
-    background: transparent !important;
-    color: var(--txt-dim) !important;
-    border: none !important; box-shadow: none !important;
-    font-size: 12.5px !important; font-weight: 600 !important;
-    letter-spacing: .03em !important;
+.block-label, span.block-label, .block .block-label, [class*="block_label"], [class*="block-label"] {
+    background: #1C1C21 !important;
+    color: #D2CFC6 !important;
+    border: 1px solid #2A2A30 !important; box-shadow: none !important;
+    font-weight: 600 !important; letter-spacing: .02em !important;
 }
-.block-label svg, .block-label .icon, label svg { color: var(--gold) !important; opacity: .8; }
+.block-label svg, .block-label .icon { color: var(--gold) !important; opacity: .85; }
+.label-text { color: var(--txt-dim) !important; }
 
 /* ── 徽标 ── */
 .badge {
@@ -319,7 +323,7 @@ EXAMPLES: list[tuple[str, str, str]] = [
 
 def on_generate(prompt: str, audio_ref, cfg: float, stg: float,
                 dur_mult: float, gen_dur: float, ref_dur: float, seed: int):
-    """单句生成。"""
+    """单句生成。参考音频来自下方播放器（选音色会载入这里，或直接上传）。"""
     if not prompt or not prompt.strip():
         raise gr.Error("请输入提示词。")
     t0 = time.time()
@@ -365,6 +369,22 @@ def get_voice_choices() -> list:
     return [(v["name"], v["path"]) for v in list_voices()]
 
 
+def on_quick_save_voice(name: str, audio_ref):
+    """在快速生成页把上传的参考音频存为音色，并刷新音色下拉。"""
+    if not name or not name.strip():
+        raise gr.Error("请先填写音色名称。")
+    if not audio_ref:
+        raise gr.Error("请先上传参考音频，再保存。")
+    if save_voice(name.strip(), str(audio_ref)) is None:
+        raise gr.Error("保存失败，请检查音频文件。")
+    return gr.update(choices=get_voice_choices())
+
+
+def on_refresh_voices():
+    """重新加载音色下拉（用于另一标签页保存后的同步）。"""
+    return gr.update(choices=get_voice_choices())
+
+
 def on_parse_script(text: str):
     """解析剧本 → 更新角色分配 UI。"""
     if not text or not text.strip():
@@ -380,32 +400,58 @@ def on_parse_script(text: str):
             updates.append(gr.update(visible=True, value=chars[i], label=f"角色 {i+1}"))
         else:
             updates.append(gr.update(visible=False, value=""))
+    # 自动给每个角色分配库里的一个音色（轮流，避免都用同一个；留空会走内置默认嗓音）
+    voice_paths = [c[1] for c in choices]
     dropdown_updates = []
     for i in range(8):
         if i < len(chars):
-            dropdown_updates.append(gr.update(visible=True, choices=choices))
+            default_voice = voice_paths[i % len(voice_paths)] if voice_paths else None
+            dropdown_updates.append(gr.update(visible=True, choices=choices, value=default_voice))
         else:
             dropdown_updates.append(gr.update(visible=False, choices=choices))
+    # 逐句情感下拉：为前 MAX_EMOTION_LINES 句各显示一个，标签带上台词预览
+    emotion_updates = []
+    for i in range(MAX_EMOTION_LINES):
+        if i < len(lines):
+            spk = lines[i]["character"] or "旁白"
+            text = lines[i]["line"]
+            preview = text[:16] + ("…" if len(text) > 16 else "")
+            emotion_updates.append(gr.update(visible=True, value="正常",
+                                             label=f"{i+1}. {spk}：{preview}"))
+        else:
+            emotion_updates.append(gr.update(visible=False))
+    title_update = gr.update(visible=True)
     # store parsed data in state
     parsed_json = [{"character": item["character"], "line": item["line"]} for item in lines]
-    return updates + dropdown_updates + [parsed_json, f"已识别 {len(lines)} 句台词 · {len(chars)} 个角色"]
+    status = f"已识别 {len(lines)} 句台词 · {len(chars)} 个角色"
+    if len(lines) > MAX_EMOTION_LINES:
+        status += f"（逐句情感最多设置前 {MAX_EMOTION_LINES} 句，其余按「正常」生成）"
+    return updates + dropdown_updates + emotion_updates + [title_update, parsed_json, status]
 
 
 def on_generate_dialogue(parsed_lines, *dropdown_values):
-    """批量生成对话。"""
+    """批量生成对话。dropdown_values = 前 8 个音色下拉 + 后 N 个逐句情感下拉。"""
     if not parsed_lines:
         raise gr.Error("请先解析剧本。")
+    voices = dropdown_values[:8]
+    emotions = dropdown_values[8:]
+    # 角色 → 音色
     voice_map = {}
     chars = list(dict.fromkeys(item["character"] for item in parsed_lines if item["character"]))
     for i, char in enumerate(chars):
-        if i < len(dropdown_values) and dropdown_values[i]:
-            voice_map[char] = dropdown_values[i]
+        if i < len(voices) and voices[i]:
+            voice_map[char] = voices[i]
+    # 把每句的情感并进台词数据（超出选择器范围的按"正常"）
+    lines_with_emotion = []
+    for i, item in enumerate(parsed_lines):
+        emo = emotions[i] if i < len(emotions) and emotions[i] else "正常"
+        lines_with_emotion.append({**item, "emotion": emo})
     from dialogue import generate_dialogue
 
     def progress_cb(cur, total, character, line):
         log.info(f"[{cur}/{total}] {character}: {line[:30]}...")
 
-    out = generate_dialogue(parsed_lines, voice_map, tts, progress_cb)
+    out = generate_dialogue(lines_with_emotion, voice_map, tts, progress_cb)
     if out is None:
         raise gr.Error("生成失败。")
     return out
@@ -420,6 +466,15 @@ with gr.Blocks(
         neutral_hue="gray",
         font=gr.themes.Font("Inter"),
         font_mono=gr.themes.Font("ui-monospace"),
+    ).set(
+        block_label_background_fill="#1C1C21",
+        block_label_text_color="#D2CFC6",
+        block_label_border_color="#2A2A30",
+        # 组件标题(角色/音色/台词等标签) → 用按钮同款哑光金 + 深字（替换刺眼橙）
+        block_title_background_fill="#C9A24B",
+        block_title_text_color="#1A1509",
+        block_title_border_color="#C9A24B",
+        block_info_text_color="#66645C",
     ),
     css=CSS,
     analytics_enabled=False,
@@ -455,7 +510,23 @@ with gr.Blocks(
                                     'She laughs, "Hahaha, it is so good to see you!"',
                         lines=6,
                     )
-                    audio_ref = gr.Audio(label="参考音频（可选）", type="filepath")
+                    with gr.Row():
+                        quick_voice = gr.Dropdown(
+                            label="选择已保存音色（选中会载入下方，可试听）",
+                            choices=get_voice_choices(), value=None,
+                            interactive=True, scale=5,
+                        )
+                        refresh_voice_btn = gr.Button("🔄 刷新", variant="secondary", scale=1)
+                    audio_ref = gr.Audio(
+                        label="参考音频 · 可试听（选上方音色会载入这里，也可直接上传 10s+）",
+                        type="filepath",
+                    )
+                    with gr.Row():
+                        quick_voice_name = gr.Textbox(
+                            label="把上传的音频存为音色", placeholder="给音色起个名，例如：女主角",
+                            scale=4,
+                        )
+                        quick_save_btn = gr.Button("💾 保存音色", variant="secondary", scale=1)
                     gen_btn = gr.Button("✦ 生成", variant="primary", size="lg")
 
                 with gr.Column(scale=2):
@@ -477,6 +548,13 @@ with gr.Blocks(
                 outputs=[audio_out],
             )
 
+            # 选中已保存音色 → 自动载入到参考音频播放器（可试听）
+            quick_voice.change(lambda p: p, inputs=[quick_voice], outputs=[audio_ref])
+            # 把当前参考音频存为音色 / 刷新音色下拉
+            quick_save_btn.click(on_quick_save_voice,
+                                 inputs=[quick_voice_name, audio_ref], outputs=[quick_voice])
+            refresh_voice_btn.click(on_refresh_voices, outputs=[quick_voice])
+
             gr.Examples(
                 label="📋 点击示例快速体验",
                 examples=[
@@ -495,40 +573,11 @@ with gr.Blocks(
             )
 
         # ══════════════════════════════════════════
-        # Tab 2: 音色库
-        # ══════════════════════════════════════════
-        with gr.TabItem("📚 音色库", id="tab_voices"):
-            gr.Markdown("管理你的声音角色。上传 10 秒以上的参考音频，给角色命名，对话工坊可直接选用。")
-
-            with gr.Row():
-                with gr.Column(scale=2):
-                    voice_audio = gr.Audio(label="上传参考音频（10s+）", type="filepath")
-                    voice_name = gr.Textbox(label="角色名称", placeholder="例如：张三、李四、女主角")
-                    save_btn = gr.Button("保存音色", variant="primary")
-                    delete_name = gr.Textbox(label="删除音色（输入名称）", placeholder="输入要删除的角色名称")
-                    delete_btn = gr.Button("删除", variant="secondary")
-
-                with gr.Column(scale=3):
-                    voice_table = gr.Dataframe(
-                        headers=["名称", "时长", "创建时间"],
-                        datatype=["str", "str", "str"],
-                        col_count=(3, "fixed"),
-                        label="已保存的音色",
-                        value=refresh_voice_table(),
-                        interactive=False,
-                    )
-
-            save_btn.click(on_save_voice, inputs=[voice_name, voice_audio],
-                          outputs=[voice_table])
-            delete_btn.click(on_delete_voice, inputs=[delete_name],
-                           outputs=[voice_table])
-
-        # ══════════════════════════════════════════
-        # Tab 3: 对话工坊
+        # Tab 2: 对话工坊
         # ══════════════════════════════════════════
         with gr.TabItem("🎬 对话工坊", id="tab_dialogue"):
             gr.Markdown(
-                "粘贴剧本，自动识别角色，分配音色，一键生成完整对话音频。\n\n"
+                "粘贴剧本 → 自动识别角色并**从音色库自动分配声音**（可下拉更换）→ **逐句挑选情感** → 一键生成。\n\n"
                 "**剧本格式：** `角色名：台词` 或 `角色名:台词`，每行一句。"
             )
 
@@ -554,6 +603,16 @@ with gr.Blocks(
                             char_names.append(cn)
                             voice_drops.append(vd)
 
+                    emotion_title = gr.Markdown(
+                        "**🎭 逐句情感** · 每句台词挑一个情绪（默认正常）", visible=False)
+                    emotion_drops = []
+                    for i in range(MAX_EMOTION_LINES):
+                        ed = gr.Dropdown(
+                            choices=EMOTION_LABELS, value="正常",
+                            label=f"第 {i+1} 句", visible=False, interactive=True,
+                        )
+                        emotion_drops.append(ed)
+
                     dialogue_gen_btn = gr.Button("🎬 生成完整对话", variant="primary", visible=False)
                     dialogue_out = gr.Audio(label="完整对话音频", type="filepath")
 
@@ -564,7 +623,7 @@ with gr.Blocks(
             parse_btn.click(
                 on_parse_script,
                 inputs=[script_input],
-                outputs=all_char_outputs + [parsed_state, parse_status],
+                outputs=all_char_outputs + emotion_drops + [emotion_title, parsed_state, parse_status],
             ).then(
                 lambda: gr.update(visible=True),
                 outputs=[dialogue_gen_btn],
@@ -572,7 +631,7 @@ with gr.Blocks(
 
             dialogue_gen_btn.click(
                 on_generate_dialogue,
-                inputs=[parsed_state] + voice_drops,
+                inputs=[parsed_state] + voice_drops + emotion_drops,
                 outputs=[dialogue_out],
             )
 

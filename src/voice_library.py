@@ -29,14 +29,47 @@ def _save_db(db: list[dict]) -> None:
     VOICES_JSON.write_text(json.dumps(db, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _get_duration(path) -> float:
+    """读取音频时长（秒）。此版本 torchaudio 无 .info，用 wave/scipy/torchaudio.load 依次兜底。"""
+    p = str(path)
+    import contextlib
+    import wave
+    try:
+        with contextlib.closing(wave.open(p, "rb")) as w:
+            if w.getframerate():
+                return round(w.getnframes() / w.getframerate(), 1)
+    except Exception:
+        pass
+    try:
+        from scipy.io.wavfile import read as _wr
+        sr, data = _wr(p)
+        if sr:
+            return round(len(data) / sr, 1)
+    except Exception:
+        pass
+    try:
+        import torchaudio
+        wav_t, sr = torchaudio.load(p)
+        if sr:
+            return round(wav_t.shape[-1] / sr, 1)
+    except Exception:
+        pass
+    return 0.0
+
+
 def list_voices() -> list[dict]:
     """返回 [{name, path, duration_seconds, created_at}]。"""
     db = _load_db()
-    # 清理文件已被手动删除的记录
+    # 清理文件已被手动删除的记录；顺便补算时长为 0 的旧记录（自愈）
     valid = []
     changed = False
     for v in db:
         if Path(v["path"]).exists():
+            if not v.get("duration_seconds"):
+                d = _get_duration(v["path"])
+                if d:
+                    v["duration_seconds"] = d
+                    changed = True
             valid.append(v)
         else:
             changed = True
@@ -58,12 +91,7 @@ def save_voice(name: str, source_path: str) -> dict | None:
     dest = VOICES_DIR / f"{name}{ext}"
     shutil.copy2(src, dest)
 
-    try:
-        import torchaudio
-        info = torchaudio.info(str(dest))
-        duration = info.num_frames / info.sample_rate
-    except Exception:
-        duration = 0.0
+    duration = _get_duration(dest)
 
     db = _load_db()
     # 同名覆盖

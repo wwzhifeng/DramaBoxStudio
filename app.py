@@ -430,7 +430,8 @@ def refresh_voice_table() -> list:
 
 def get_voice_choices() -> list:
     """返回 [(name, path)] 供 dropdown 使用。"""
-    return [(v["name"], v["path"]) for v in list_voices()]
+    from voice_library import _resolve_path
+    return [(v["name"], str(_resolve_path(v["path"]))) for v in list_voices()]
 
 
 def on_quick_save_voice(name: str, audio_ref):
@@ -447,6 +448,19 @@ def on_quick_save_voice(name: str, audio_ref):
 def on_refresh_voices():
     """重新加载音色下拉（用于另一标签页保存后的同步）。"""
     return gr.update(choices=get_voice_choices())
+
+
+def on_delete_selected_voice(selected_path):
+    """删除当前下拉选中的音色。下拉的值是音色文件路径，需先映射回音色名。"""
+    if not selected_path:
+        raise gr.Error("请先在上方下拉里选中要删除的音色。")
+    from voice_library import _resolve_path
+    target = str(selected_path)
+    name = next((v["name"] for v in list_voices()
+                 if str(_resolve_path(v["path"])) == target), None)
+    if name is None or not delete_voice(name):
+        raise gr.Error("未找到对应音色，可能已被删除。")
+    return gr.update(choices=get_voice_choices(), value=None)
 
 
 def on_parse_script(text: str):
@@ -745,6 +759,7 @@ window._qw=function(){
                             interactive=True, scale=5,
                         )
                         refresh_voice_btn = gr.Button("🔄 刷新", variant="secondary", scale=1)
+                        delete_voice_btn = gr.Button("🗑️ 删除选中", variant="secondary", scale=1)
                     audio_ref = gr.Audio(
                         label="参考音频 · 可试听（选上方音色会载入这里，也可直接上传 10s+）",
                         type="filepath",
@@ -784,6 +799,9 @@ window._qw=function(){
             quick_save_btn.click(on_quick_save_voice,
                                  inputs=[quick_voice_name, audio_ref], outputs=[quick_voice])
             refresh_voice_btn.click(on_refresh_voices, outputs=[quick_voice])
+            # 删除当前选中的音色，并刷新下拉
+            delete_voice_btn.click(on_delete_selected_voice,
+                                   inputs=[quick_voice], outputs=[quick_voice])
 
             gr.Examples(
                 label="📋 点击示例快速体验",

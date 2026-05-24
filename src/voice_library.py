@@ -57,6 +57,14 @@ def _get_duration(path) -> float:
     return 0.0
 
 
+def _resolve_path(path_str: str) -> Path:
+    """将存储的路径解析为绝对路径。已是绝对路径则直接返回，否则相对于 VOICES_DIR。"""
+    p = Path(path_str)
+    if p.is_absolute():
+        return p
+    return VOICES_DIR / p
+
+
 def list_voices() -> list[dict]:
     """返回 [{name, path, duration_seconds, created_at}]。"""
     db = _load_db()
@@ -64,9 +72,14 @@ def list_voices() -> list[dict]:
     valid = []
     changed = False
     for v in db:
-        if Path(v["path"]).exists():
+        real_path = _resolve_path(v["path"])
+        if real_path.exists():
+            # 迁移旧绝对路径 → 相对路径
+            if Path(v["path"]).is_absolute():
+                v["path"] = real_path.name
+                changed = True
             if not v.get("duration_seconds"):
-                d = _get_duration(v["path"])
+                d = _get_duration(real_path)
                 if d:
                     v["duration_seconds"] = d
                     changed = True
@@ -98,7 +111,7 @@ def save_voice(name: str, source_path: str) -> dict | None:
     db = [v for v in db if v["name"] != name]
     entry = {
         "name": name,
-        "path": str(dest),
+        "path": dest.name,
         "duration_seconds": round(duration, 1),
         "created_at": time.strftime("%Y-%m-%d %H:%M"),
     }
@@ -117,7 +130,7 @@ def delete_voice(name: str) -> bool:
     if entry is None:
         return False
     try:
-        Path(entry["path"]).unlink(missing_ok=True)
+        _resolve_path(entry["path"]).unlink(missing_ok=True)
     except Exception:
         pass
     db = [v for v in db if v["name"] != name]

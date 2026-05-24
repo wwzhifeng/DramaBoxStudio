@@ -99,21 +99,23 @@ Open `http://localhost:7860` in your browser.
 
 ### Model Download
 
-Models are **auto-downloaded** on first launch from HuggingFace — no manual setup required.
+**Option 1 users (Integration Package):** models are included — skip this section.
 
-| Model | Source | Size |
+**Option 2 users (Run from Source):** download the following models and place them under `models/`:
+
+| Model | Source | Where to put it |
 |---|---|---|
-| DiT Transformer | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | 6.6 GB |
-| Audio Components (VAE + Vocoder) | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | 1.9 GB |
-| Text Encoder (Gemma 3 12B, 4-bit) | [unsloth/gemma-3-12b-it-bnb-4bit](https://huggingface.co/unsloth/gemma-3-12b-it-bnb-4bit) | ~8 GB |
+| DiT Transformer (`dramabox-dit-v1.safetensors`) | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | `models/checkpoints/` |
+| Audio Components (`dramabox-audio-components.safetensors`) | [ResembleAI/Dramabox](https://huggingface.co/ResembleAI/Dramabox) | `models/checkpoints/` |
+| Text Encoder (Gemma 3 12B, 4-bit) | [unsloth/gemma-3-12b-it-bnb-4bit](https://huggingface.co/unsloth/gemma-3-12b-it-bnb-4bit) | `models/gemma/` |
 
-**Total: ~16 GB. First launch may take 10–30 minutes. Subsequent launches load in ~10 seconds.**
+**Total: ~16 GB.**
 
-> If HuggingFace is slow in your region, set a mirror before launching:
-> ```bash
-> set HF_ENDPOINT=https://hf-mirror.com
-> python app.py
-> ```
+If HuggingFace is slow in your region, use a mirror:
+```bash
+set HF_ENDPOINT=https://hf-mirror.com
+```
+Then download the files manually or with `huggingface-cli download`.
 
 ---
 

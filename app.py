@@ -1,6 +1,8 @@
 """
 DramaBox Studio — AI 配音工作室
 基于 Resemble AI / Lightricks LTX-2.3
+
+Modified by Siddid Soni, 2026-10: server picked per VRAM tier (create_server), Apple Silicon allowed.
 """
 import logging
 import os
@@ -28,6 +30,13 @@ def _check_environment():
         print("=" * 50 + "\n")
         sys.exit(1)
 
+    if sys.platform == "darwin":
+        import platform
+        if platform.machine() != "arm64":
+            print("\n[ERROR] macOS needs an Apple Silicon Mac (M1 or later).\n")
+            sys.exit(1)
+        return
+
     import subprocess
     try:
         subprocess.run(["nvidia-smi"], capture_output=True, check=True)
@@ -43,7 +52,7 @@ _check_environment()
 # 检查通过才能走到这里
 print("Environment checks passed: path OK, GPU OK")
 
-from inference_server import TTSServer
+from inference_server import create_server
 from config import (GRADIO_PORT, DIT_CHECKPOINT, AUDIO_COMPONENTS, GEMMA_DIR,
                     OUTPUT_DIR, VOICES_DIR, CFG_SCALE, STG_SCALE, STEPS, SEED)
 from voice_library import list_voices, save_voice, delete_voice
@@ -62,11 +71,9 @@ VOICES_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── 加载模型（全局单例）──────────────────────────────
 log.info("DramaBox Studio 启动中，加载模型...")
-tts = TTSServer(
+tts = create_server(
     checkpoint=str(DIT_CHECKPOINT),
     full_checkpoint=str(AUDIO_COMPONENTS),
-    gemma_root=str(GEMMA_DIR),
-    device="cuda",
     dtype="bf16",
 )
 log.info("模型就绪。")

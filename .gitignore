@@ -13,8 +13,8 @@ models/
 WZF312/
 
 # Generated audio outputs
-output/*.wav
-output/*.mp3
+output/**/*.wav
+output/**/*.mp3
 
 # Demo video source (copy in assets/)
 功能展示.mp4
@@ -24,3 +24,6 @@ tmp/
 打包不带/
 音频文件/
 TODO*.md
+
+# Prompt-embedding cache
+cache/

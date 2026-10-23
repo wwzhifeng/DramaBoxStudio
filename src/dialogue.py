@@ -1,4 +1,7 @@
-"""对话工坊 — 剧本解析 + 批量生成 + 拼接。"""
+"""对话工坊 — 剧本解析 + 批量生成 + 拼接。
+
+Modified by Siddid Soni, 2026-10: all lines are encoded in one batch before voicing.
+"""
 import logging
 import re
 import time
@@ -105,15 +108,18 @@ def generate_dialogue(
     sr = 24000
     total = len(lines)
 
+    # 官方格式：导演指令在引号外（不会被念出），台词在双引号内（原样念）
+    prompts = [f'{EMOTION_PRESETS.get(item.get("emotion") or "正常", EMOTION_PRESETS["正常"])}，"{item["line"]}"'
+               for item in lines]
+    # 先一次性编码全部台词：低显存档只切换一次 GPU 阶段
+    from inference_server import DEFAULT_NEG
+    tts.encode([*prompts, DEFAULT_NEG])
+
     for i, item in enumerate(lines):
         char = item["character"]
         line = item["line"]
-        emotion = item.get("emotion") or "正常"
         ref = voice_map.get(char) if char else None
-
-        # 官方格式：导演指令在引号外（不会被念出），台词在双引号内（原样念）
-        directive = EMOTION_PRESETS.get(emotion, EMOTION_PRESETS["正常"])
-        prompt = f'{directive}，"{line}"'
+        prompt = prompts[i]
 
         log.info(f"[{i+1}/{total}] {char}: {line[:40]}...")
         if progress_cb:

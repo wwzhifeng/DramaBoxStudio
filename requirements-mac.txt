@@ -1,0 +1,24 @@
+# Apple Silicon (M1 or later, macOS 14+): pip install -r requirements-mac.txt
+# Gemma runs in MLX; no bitsandbytes / torchao on macOS.
+torch==2.8.0
+torchaudio==2.8.0
+mlx>=0.25.0
+mlx-lm>=0.25.0
+numpy>=1.26.0
+scipy>=1.12.0
+librosa>=0.10.0
+pydantic==2.10.6
+safetensors>=0.4.0
+accelerate>=0.25.0
+peft>=0.7.0
+av>=12.0.0
+einops>=0.7.0
+PyYAML>=6.0
+sentencepiece>=0.1.99
+transformers>=4.57,<5
+huggingface_hub>=0.20.0,<1.0
+gradio==5.7.1
+soundfile>=0.12.0
+rich>=13.0.0
+tqdm>=4.66.0
+resemble-perth @ git+https://github.com/resemble-ai/Perth.git@master
